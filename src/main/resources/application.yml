@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: translation-bot
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/translation-bot}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:admin}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show.sql: true
+    hibernate:
+      ddl-auto: update
+
+telegram:
+  bot:
+    token: ${BOT_TOKEN:7653790514:AAEjzQNNEnBdKjfxHKoozQik1g8RZTMCCcw}
+    username: ${BOT_USERNAME:translationgroup_bot}
+    username-admin: ${USERNAME_ADMIN:edzeeeee}
+  groups:
+    starting-chars: ${STARTING_CHARS:10000}
+
+yandex:
+  translate:
+    token: ${YANDEX_GPT_TOKEN:AQVN1ee81jupCkkW_81aPjcbWdrKr5FpvxT0Ph7O}
+    folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
+    model-url: gpt://${yandex.gpt.folder-id}/yandexgpt/rc
+    base-url: ${YANDEX_BASE_URL:https://llm.api.cloud.yandex.net/foundationModels/v1/}
