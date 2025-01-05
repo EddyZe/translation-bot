@@ -24,7 +24,6 @@ telegram:
 
 yandex:
   translate:
-    token: ${YANDEX_GPT_TOKEN:AQVN1ee81jupCkkW_81aPjcbWdrKr5FpvxT0Ph7O}
+    token: ${YANDEX_TRANSLATE_TOKEN:AQVNyPiEAuvo72PgR_vn3zNsZcPtNaAbgZd1-fLj}
     folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
-    model-url: gpt://${yandex.gpt.folder-id}/yandexgpt/rc
-    base-url: ${YANDEX_BASE_URL:https://llm.api.cloud.yandex.net/foundationModels/v1/}
+    base-url: ${YANDEX_BASE_URL:https://translate.api.cloud.yandex.net/translate/v2}
