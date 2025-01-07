@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
@@ -57,7 +59,9 @@ public class CreateInvoiceImpl implements CreateInvoice {
             var price = priceService.findById(priceId);
 
             if (price.getType() == PaymentType.CRYPTO_PAY) {
-                createInvoiceCrypto(groupId, price, chatId);
+                buildInvoiceCryptoAndSend(groupId, price, chatId);
+            } else if (price.getType() == PaymentType.TELEGRAM_STARS) {
+                buildInvoiceTgStarsAndSend(groupId, price, chatId);
             }
 
         } catch (NoSuchElementException e) {
@@ -70,39 +74,47 @@ public class CreateInvoiceImpl implements CreateInvoice {
         answerCallBack(callbackQuery.getId());
     }
 
-    private void createInvoiceCrypto(long groupId, Price price, Long chatId) throws JsonProcessingException {
+    private void buildInvoiceTgStarsAndSend(long groupId, Price price, Long chatId) throws JsonProcessingException {
         var group = groupService.findById(groupId);
 
         var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price));
 
-        var invoice = createInvoice(price, payload);
+        var sendInvoice = SendInvoice.builder()
+                .chatId(chatId)
+                .title("Покупка символов.")
+                .description("Покупка %d символов для группы %s".formatted(price.getNumberCharacters(), group.getTitle()))
+                .currency("XTR")
+                .payload(payload)
+                .providerToken(" ")
+                .price(new LabeledPrice("Покупка символов", price.getPrice().intValue()))
+                .startParameter(chatId.toString())
+                .build();
+
+        try {
+            telegramClient.execute(sendInvoice);
+        } catch (TelegramApiException e) {
+            log.error("Ошибка при выставлении счета звездами: {}", e.toString());
+            sendMessage(chatId, "Произошла ошибка при выставлении счета. Попробуйте повторить попытку!");
+        }
+    }
+
+    private void buildInvoiceCryptoAndSend(long groupId, Price price, Long chatId) throws JsonProcessingException {
+        var group = groupService.findById(groupId);
+
+        var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price));
+
+        var invoice = createInvoiceCryptoPay(price, payload);
         showInvoiceCrypto(chatId, invoice.getResult().getMiniAppInvoiceUrl());
     }
 
     private PaymentPayload buildPaymentPayload(Group group, Price price) {
-        var groupPayload = GroupPayload.builder()
-                .title(group.getTitle())
-                .groupId(group.getGroupId())
-                .telegramGroupId(group.getTelegramGroupId())
-                .limitCharacters(group.getLimitCharacters())
-                .languages(group.getLanguages())
-                .chatId(group.getChatId())
-                .build();
-
-        var pricePayload = PricePayload.builder()
-                .priceId(price.getPriceId())
-                .asset(price.getAsset())
-                .numberCharacters(price.getNumberCharacters())
-                .price(price.getPrice())
-                .build();
-
         return PaymentPayload.builder()
-                .group(groupPayload)
-                .price(pricePayload)
+                .groupId(group.getGroupId())
+                .priceId(price.getPriceId())
                 .build();
     }
 
-    private ResponseCrypto createInvoice(Price price, String payload) {
+    private ResponseCrypto createInvoiceCryptoPay(Price price, String payload) {
         return cryptoPayClient.createInvoice(
                 price.getPrice(),
                 price.getAsset(),

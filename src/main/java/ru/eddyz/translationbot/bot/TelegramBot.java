@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.domain.models.TelegramBotConfig;
 import ru.eddyz.translationbot.handlers.CallBackHandler;
 import ru.eddyz.translationbot.handlers.MessageHandler;
+import ru.eddyz.translationbot.handlers.PreCheckoutQueryHandler;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
     private final MessageHandler messageHandler;
     private final CallBackHandler callBackHandler;
+    private final PreCheckoutQueryHandler preCheckoutQueryHandler;
 
     @Override
     public String getBotToken() {
@@ -41,6 +43,8 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             messageHandler.handle(update.getMessage());
         else if (update.hasCallbackQuery()) {
             callBackHandler.handle(update.getCallbackQuery());
+        } else if (update.hasPreCheckoutQuery()) {
+            preCheckoutQueryHandler.handle(update.getPreCheckoutQuery());
         }
     }
 }

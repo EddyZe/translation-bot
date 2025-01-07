@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentPayload {
 
-    private GroupPayload group;
-    private PricePayload price;
+    private Long groupId;
+    private Long priceId;
 }

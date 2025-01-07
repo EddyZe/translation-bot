@@ -30,6 +30,8 @@ public class Payment {
 
     private LocalDateTime createdAt;
 
+    private String telegramPaymentId;
+
     @Enumerated(EnumType.STRING)
     private PaymentType type;
 

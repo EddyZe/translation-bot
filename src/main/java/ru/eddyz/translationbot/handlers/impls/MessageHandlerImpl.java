@@ -10,6 +10,7 @@ import ru.eddyz.translationbot.commands.Start;
 import ru.eddyz.translationbot.domain.enums.MainMenuButton;
 import ru.eddyz.translationbot.domain.enums.UserStates;
 import ru.eddyz.translationbot.handlers.MessageHandler;
+import ru.eddyz.translationbot.handlers.SuccessfulPaymentHandler;
 import ru.eddyz.translationbot.util.UserState;
 
 
@@ -21,12 +22,12 @@ public class MessageHandlerImpl implements MessageHandler {
     private final ListGroup listGroup;
     private final AddGroup addGroup;
     private final CheckLimit checkLimit;
+    private final SuccessfulPaymentHandler successfulPaymentHandler;
 
     @Override
     public void handle(Message message) {
         if (message.hasText() && message.isUserMessage()) {
             var text = message.getText();
-
             if (text.equals("/start"))
                 start.execute(message);
             else if (text.equals("/check_limit")) {
@@ -47,6 +48,8 @@ public class MessageHandlerImpl implements MessageHandler {
 
                 }
             }
+        } else if (message.hasSuccessfulPayment()) {
+            successfulPaymentHandler.handle(message.getSuccessfulPayment());
         }
     }
 }
