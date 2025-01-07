@@ -3,12 +3,8 @@ package ru.eddyz.translationbot.handlers.impls;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import ru.eddyz.translationbot.commands.CloseGroupList;
-import ru.eddyz.translationbot.commands.ListGroup;
-import ru.eddyz.translationbot.commands.OpenSettingGroup;
-import ru.eddyz.translationbot.commands.RemoveGroup;
-import ru.eddyz.translationbot.domain.enums.ListGroupMenu;
-import ru.eddyz.translationbot.domain.enums.SettingGroupBtn;
+import ru.eddyz.translationbot.commands.*;
+import ru.eddyz.translationbot.domain.enums.*;
 import ru.eddyz.translationbot.handlers.CallBackHandler;
 import ru.eddyz.translationbot.util.UserCurrentPages;
 
@@ -19,9 +15,13 @@ public class CallBackHandlerImpl implements CallBackHandler {
 
 
     private final ListGroup listGroup;
-    private final CloseGroupList closeGroupList;
+    private final CloseWindow closeWindow;
     private final OpenSettingGroup openSettingGroup;
     private final RemoveGroup removeGroup;
+    private final CheckLimit checkLimit;
+    private final SelectPaymentType selectPaymentType;
+    private final ShowPrices showPrices;
+    private final CreateInvoice createInvoice;
 
     @Override
     public void handle(CallbackQuery callbackQuery) {
@@ -34,13 +34,55 @@ public class CallBackHandlerImpl implements CallBackHandler {
             UserCurrentPages.listGroupBackPage(callbackQuery.getMessage().getChatId());
             listGroup.execute(callbackQuery);
         } else if (data.equals(ListGroupMenu.CLOSE_LIST_GROUP.name())) {
-            closeGroupList.execute(callbackQuery);
+            closeWindow.execute(callbackQuery, listGroup.getClass());
         } else if (data.startsWith(ListGroupMenu.GROUP_LIST.name())) {
             openSettingGroup.execute(callbackQuery);
         } else if (data.startsWith(SettingGroupBtn.DELETE_GROUP.name())) {
             removeGroup.execute(callbackQuery);
         } else if (data.startsWith(SettingGroupBtn.BACK_TO_LIST_GROUP.name())) {
             listGroup.execute(callbackQuery);
+        } else if (data.equals(ButtonCheckLimit.CLOSE_CHECK_LIMIT.name())) {
+            closeWindow.execute(callbackQuery, checkLimit.getClass());
+        } else if (data.equals(ButtonCheckLimit.NEXT_CHECK_LIMIT.name())) {
+            UserCurrentPages.checkListNextPage(callbackQuery.getMessage().getChatId());
+            checkLimit.execute(callbackQuery);
+        } else if (data.equals(ButtonCheckLimit.BACK_CHECK_LIMIT.name())) {
+            UserCurrentPages.checkListBackPage(callbackQuery.getMessage().getChatId());
+            checkLimit.execute(callbackQuery);
+        } else if (data.startsWith(SettingGroupBtn.BUY_CHARACTERS.name())) {
+            selectPaymentType.execute(callbackQuery);
+        } else if (data.startsWith(ButtonSelectPaymentType.BACK_SETTING_GROUP.name())) {
+            openSettingGroup.execute(callbackQuery);
+        } else if (data.startsWith(ButtonPriceList.BACK_SELECTED_PRICE.name())) {
+            UserCurrentPages.resetPriceCurrentPage(callbackQuery.getMessage().getChatId());
+            selectPaymentType.execute(callbackQuery);
+        } else if (data.startsWith(ButtonSelectPaymentType.CRYPTO_PAY_BTN.name())) {
+            showPrices.execute(callbackQuery, PaymentType.CRYPTO_PAY);
+        } else if (data.startsWith(ButtonSelectPaymentType.TELEGRAM_STARS_BTN.name())) {
+            showPrices.execute(callbackQuery, PaymentType.TELEGRAM_STARS);
+        } else if (data.startsWith(ButtonPriceList.NEXT_PAGE_PRICE.name())) {
+            UserCurrentPages.priceNextPage(callbackQuery.getMessage().getChatId());
+            showPrices.execute(callbackQuery, getPaymentType(callbackQuery.getData()));
+        } else if (data.startsWith(ButtonPriceList.BACK_PAGE_PRICE.name())) {
+            UserCurrentPages.priceBackPage(callbackQuery.getMessage().getChatId());
+            showPrices.execute(callbackQuery, getPaymentType(callbackQuery.getData()));
+        } else if (data.startsWith(ButtonPriceList.PRICE_LIST.name())) {
+            createInvoice.execute(callbackQuery);
         }
+    }
+
+    private PaymentType getPaymentType(String data) {
+        var splitData = data.split(":");
+
+        if (splitData.length == 3) {
+            var type = splitData[2];
+
+            if (type.equals(PaymentType.CRYPTO_PAY.name()))
+                return PaymentType.CRYPTO_PAY;
+
+            if (type.equals(PaymentType.TELEGRAM_STARS.name()))
+                return PaymentType.TELEGRAM_STARS;
+        }
+        return null;
     }
 }

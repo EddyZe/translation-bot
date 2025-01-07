@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.eddyz.translationbot.commands.AddGroup;
+import ru.eddyz.translationbot.commands.CheckLimit;
 import ru.eddyz.translationbot.commands.ListGroup;
 import ru.eddyz.translationbot.commands.Start;
 import ru.eddyz.translationbot.domain.enums.MainMenuButton;
@@ -19,6 +20,7 @@ public class MessageHandlerImpl implements MessageHandler {
     private final Start start;
     private final ListGroup listGroup;
     private final AddGroup addGroup;
+    private final CheckLimit checkLimit;
 
     @Override
     public void handle(Message message) {
@@ -27,7 +29,9 @@ public class MessageHandlerImpl implements MessageHandler {
 
             if (text.equals("/start"))
                 start.execute(message);
-            else if (text.equals(MainMenuButton.MY_GROUPS.toString())) {
+            else if (text.equals("/check_limit")) {
+                checkLimit.execute(message);
+            } else if (text.equals(MainMenuButton.MY_GROUPS.toString())) {
                 listGroup.execute(message);
             } else if (text.equals(MainMenuButton.ADD_GROUP.toString())) {
                 UserState.setUserState(message.getChatId(), MainMenuButton.ADD_GROUP);

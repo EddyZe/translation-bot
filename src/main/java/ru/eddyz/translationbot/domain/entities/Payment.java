@@ -24,8 +24,9 @@ public class Payment {
     private Long chatId;
 
     private Integer numberCharacters;
+    private String asset;
 
-    private Double amount;
+    private Float amount;
 
     private LocalDateTime createdAt;
 

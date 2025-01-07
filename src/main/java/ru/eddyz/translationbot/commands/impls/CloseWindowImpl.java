@@ -1,32 +1,36 @@
 package ru.eddyz.translationbot.commands.impls;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.eddyz.translationbot.commands.CloseGroupList;
+import ru.eddyz.translationbot.commands.CheckLimit;
+import ru.eddyz.translationbot.commands.CloseWindow;
+import ru.eddyz.translationbot.commands.ListGroup;
 import ru.eddyz.translationbot.util.UserCurrentPages;
-import ru.eddyz.translationbot.util.UserState;
 
 
 @Component
 @RequiredArgsConstructor
-public class CloseGroupListImpl implements CloseGroupList {
+@Slf4j
+public class CloseWindowImpl implements CloseWindow {
 
-
-    private static final Logger log = LoggerFactory.getLogger(CloseGroupListImpl.class);
     private final TelegramClient client;
 
 
     @Override
-    public void execute(CallbackQuery callbackQuery) {
+    public void execute(CallbackQuery callbackQuery, Class<?> clazz) {
         var chatId = callbackQuery.getMessage().getChatId();
-        UserCurrentPages.resetListGroupCurrentPage(chatId);
+
+        if (clazz.getSimpleName().startsWith(ListGroup.class.getSimpleName()))
+            UserCurrentPages.resetListGroupCurrentPage(chatId);
+        else if (clazz.getSimpleName().startsWith(CheckLimit.class.getSimpleName())) {
+            UserCurrentPages.resetCheckListCurrentPage(chatId);
+        }
 
         try {
             var deleteMessage = DeleteMessage.builder()

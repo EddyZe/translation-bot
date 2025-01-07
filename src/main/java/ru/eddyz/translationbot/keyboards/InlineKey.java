@@ -1,11 +1,12 @@
 package ru.eddyz.translationbot.keyboards;
 
+import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.eddyz.translationbot.domain.entities.Group;
-import ru.eddyz.translationbot.domain.enums.ListGroupMenu;
-import ru.eddyz.translationbot.domain.enums.SettingGroupBtn;
+import ru.eddyz.translationbot.domain.entities.Price;
+import ru.eddyz.translationbot.domain.enums.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,24 +25,11 @@ public class InlineKey {
                         .build()
         )));
 
-        var nextAndBackRow = new InlineKeyboardRow();
+        var nextAndBackRow = generateNextAndBackRow(visNext,
+                visBack,
+                ListGroupMenu.NEXT_PAGE_GROUP,
+                ListGroupMenu.BACK_PAGE_GROUP);
 
-        if (visBack) {
-            var backBtn = InlineKeyboardButton.builder()
-                    .text(ListGroupMenu.BACK_PAGE_GROUP.toString())
-                    .callbackData(ListGroupMenu.BACK_PAGE_GROUP.name())
-                    .build();
-            nextAndBackRow.add(backBtn);
-        }
-
-        if (visNext) {
-            var nextBtn = InlineKeyboardButton
-                    .builder()
-                    .text(ListGroupMenu.NEXT_PAGE_GROUP.toString())
-                    .callbackData(ListGroupMenu.NEXT_PAGE_GROUP.name())
-                    .build();
-            nextAndBackRow.add(nextBtn);
-        }
         var closeBtn = InlineKeyboardButton.builder()
                 .text(ListGroupMenu.CLOSE_LIST_GROUP.toString())
                 .callbackData(ListGroupMenu.CLOSE_LIST_GROUP.name())
@@ -55,19 +43,148 @@ public class InlineKey {
                 .build();
     }
 
-    public static InlineKeyboardMarkup groupSetting(Long groupId) {
-        List<InlineKeyboardRow> rows = Arrays.stream(SettingGroupBtn.values())
-                        .map(b -> {
-                            var btn = InlineKeyboardButton.builder()
-                                    .text(b.toString())
-                                    .callbackData(b.name() + ":" + groupId)
-                                    .build();
-                            return new InlineKeyboardRow(btn);
-                        })
-                        .toList();
+    public static InlineKeyboardMarkup checkLimits(boolean visNext, boolean visBack) {
+        var rows = new ArrayList<InlineKeyboardRow>();
+
+        var nextAndBackButton = new InlineKeyboardRow();
+
+        if (visBack) {
+            var back = InlineKeyboardButton.builder()
+                    .text(ButtonCheckLimit.BACK_CHECK_LIMIT.toString())
+                    .callbackData(ButtonCheckLimit.BACK_CHECK_LIMIT.name())
+                    .build();
+            nextAndBackButton.add(back);
+        }
+
+        if (visNext) {
+            var next = InlineKeyboardButton.builder()
+                    .text(ButtonCheckLimit.NEXT_CHECK_LIMIT.toString())
+                    .callbackData(ButtonCheckLimit.NEXT_CHECK_LIMIT.name())
+                    .build();
+            nextAndBackButton.add(next);
+        }
+
+        var close = InlineKeyboardButton.builder()
+                .text(ButtonCheckLimit.CLOSE_CHECK_LIMIT.toString())
+                .callbackData(ButtonCheckLimit.CLOSE_CHECK_LIMIT.name())
+                .build();
+
+        rows.add(nextAndBackButton);
+        rows.add(new InlineKeyboardRow(close));
 
         return InlineKeyboardMarkup.builder()
                 .keyboard(rows)
                 .build();
+    }
+
+    public static InlineKeyboardMarkup groupSetting(Long groupId) {
+        List<InlineKeyboardRow> rows = Arrays.stream(SettingGroupBtn.values())
+                .map(b -> {
+                    var btn = InlineKeyboardButton.builder()
+                            .text(b.toString())
+                            .callbackData(b.name() + ":" + groupId)
+                            .build();
+                    return new InlineKeyboardRow(btn);
+                })
+                .toList();
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+    }
+
+    public static InlineKeyboardMarkup selectPaymentMode(Long groupId) {
+
+        var telegramStars = InlineKeyboardButton.builder()
+                .text(ButtonSelectPaymentType.TELEGRAM_STARS_BTN.toString())
+                .callbackData(ButtonSelectPaymentType.TELEGRAM_STARS_BTN.name() + ":" + groupId)
+                .build();
+
+        var cryptoPay = InlineKeyboardButton.builder()
+                .text(ButtonSelectPaymentType.CRYPTO_PAY_BTN.toString())
+                .callbackData(ButtonSelectPaymentType.CRYPTO_PAY_BTN.name() + ":" + groupId)
+                .build();
+
+        var goBack = InlineKeyboardButton.builder()
+                .text(ButtonSelectPaymentType.BACK_SETTING_GROUP.toString())
+                .callbackData(ButtonSelectPaymentType.BACK_SETTING_GROUP.name() + ":" + groupId)
+                .build();
+
+        var rows = new ArrayList<>(
+                List.of(new InlineKeyboardRow(telegramStars),
+                        new InlineKeyboardRow(cryptoPay),
+                        new InlineKeyboardRow(goBack))
+        );
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+    }
+
+    public static InlineKeyboardMarkup prices(List<Price> prices, Long groupId, PaymentType type, boolean visNext, boolean visBack) {
+        var rows = new ArrayList<InlineKeyboardRow>();
+
+        prices.forEach(price -> {
+            var btn = InlineKeyboardButton.builder()
+                    .text("%s символов за %.2f %s"
+                            .formatted(price.getNumberCharacters(), price.getPrice(), price.getAsset()))
+                    .callbackData(ButtonPriceList.PRICE_LIST.name() + ":" + price.getPriceId() + ":" + groupId)
+                    .build();
+
+            rows.add(new InlineKeyboardRow(btn));
+        });
+
+        var nextAndBackRow = new InlineKeyboardRow();
+
+        if (visNext) {
+            var back = InlineKeyboardButton.builder()
+                    .text(ButtonPriceList.NEXT_PAGE_PRICE.toString())
+                    .callbackData(ButtonPriceList.NEXT_PAGE_PRICE.name() + ":" + groupId + ":" + type.name())
+                    .build();
+            nextAndBackRow.add(back);
+        }
+
+        if (visBack) {
+            var next = InlineKeyboardButton
+                    .builder()
+                    .text(ButtonPriceList.BACK_PAGE_PRICE.toString())
+                    .callbackData(ButtonPriceList.BACK_PAGE_PRICE.name() + ":" + groupId + ":" + type.name())
+                    .build();
+            nextAndBackRow.add(next);
+        }
+
+        var backSelectedPayment = InlineKeyboardButton.builder()
+                .text(ButtonPriceList.BACK_SELECTED_PRICE.toString())
+                .callbackData(ButtonPriceList.BACK_SELECTED_PRICE.name() + ":" + groupId)
+                .build();
+
+        rows.add(nextAndBackRow);
+        rows.add(new InlineKeyboardRow(backSelectedPayment));
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+    }
+
+    @NotNull
+    private static InlineKeyboardRow generateNextAndBackRow(boolean visNext, boolean visBack, Enum<?> nextBtn, Enum<?> backBtn) {
+        var nextAndBackRow = new InlineKeyboardRow();
+
+        if (visBack) {
+            var back = InlineKeyboardButton.builder()
+                    .text(backBtn.toString())
+                    .callbackData(backBtn.name())
+                    .build();
+            nextAndBackRow.add(back);
+        }
+
+        if (visNext) {
+            var next = InlineKeyboardButton
+                    .builder()
+                    .text(nextBtn.toString())
+                    .callbackData(nextBtn.name())
+                    .build();
+            nextAndBackRow.add(next);
+        }
+        return nextAndBackRow;
     }
 }

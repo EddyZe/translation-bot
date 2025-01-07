@@ -22,7 +22,8 @@ public class Price {
 
     private Integer numberCharacters;
 
-    private Double price;
+    private Float price;
+    private String asset;
 
     @Enumerated(EnumType.STRING)
     private PaymentType type;

@@ -19,8 +19,15 @@ telegram:
     token: ${BOT_TOKEN:7653790514:AAEjzQNNEnBdKjfxHKoozQik1g8RZTMCCcw}
     username: ${BOT_USERNAME:translationgroup_bot}
     username-admin: ${USERNAME_ADMIN:edzeeeee}
+    bot-url: ${BOT_URL:https://t.me/translationgroup_bot}
   groups:
     starting-chars: ${STARTING_CHARS:10000}
+
+crypto:
+  pay:
+    token: ${CRYPTO_TOKEN:24556:AAubQe1O5jSEyOlaNM4vI2Ljsf8M6yNBrb6}
+    hook: ${CRYPTO_HOOK:https://e0c8-46-22-62-53.ngrok-free.app}
+    base-url: ${CRYPTO_PAY_URL:https://testnet-pay.crypt.bot/api}
 
 yandex:
   translate:

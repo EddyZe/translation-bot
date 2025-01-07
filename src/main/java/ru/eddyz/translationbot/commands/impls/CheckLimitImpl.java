@@ -1,8 +1,7 @@
 package ru.eddyz.translationbot.commands.impls;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.eddyz.translationbot.commands.ListGroup;
+import ru.eddyz.translationbot.commands.CheckLimit;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.keyboards.InlineKey;
 import ru.eddyz.translationbot.services.GroupService;
@@ -27,60 +26,82 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ListGroupImpl implements ListGroup {
+@Slf4j
+public class CheckLimitImpl implements CheckLimit {
 
-    private static final Logger log = LoggerFactory.getLogger(ListGroupImpl.class);
-    private final GroupService groupService;
     private final TelegramClient client;
-    private final Integer MAX_ELEMENT_PAGE = 5;
+    private final GroupService groupService;
 
+    private final int PAGE_ELEMENTS = 5;
 
     @Override
     public void execute(Message message) {
         var chatId = message.getChatId();
         UserState.clearAll(chatId);
 
-        var currentPage = UserCurrentPages.getListGroupCurrentPage(chatId);
-        Page<Group> groups = getPages(chatId);
+        var elements = getPages(chatId);
+        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
 
-        var totalPages = groups.getTotalPages();
+        var totalPages = elements.getTotalPages();
         var visNext = currentPage < totalPages - 1;
         var visBack = currentPage > 0;
 
-        sendMessage(chatId, groups.stream().toList(), visNext, visBack);
+        sendMessage(chatId, generateMessage(elements.stream().toList()), visNext, visBack);
     }
 
     @Override
     public void execute(CallbackQuery callbackQuery) {
         var chatId = callbackQuery.getMessage().getChatId();
         UserState.clearAll(chatId);
+
         var messageId = callbackQuery.getMessage().getMessageId();
-        var currentPage = UserCurrentPages.getListGroupCurrentPage(chatId);
-        Page<Group> groups = getPages(chatId);
+        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
+        var groups = getPages(chatId);
 
         var totalPages = groups.getTotalPages();
         var visNext = currentPage < totalPages - 1;
         var visBack = currentPage > 0;
 
-        editMessage(chatId, messageId, groups.stream().toList(), visNext, visBack);
+        editMessage(chatId, messageId, generateMessage(groups.stream().toList()), visNext, visBack);
+
         answerCallback(callbackQuery.getId());
     }
 
-    private void editMessage(Long chatId, Integer messageId, List<Group> list, boolean visNext, boolean visBack) {
+    private void editMessage(Long chatId, Integer messageId, String message, boolean visNext, boolean visBack) {
         try {
             var editMessage = EditMessageText
                     .builder()
                     .messageId(messageId)
                     .chatId(chatId)
-                    .text(generateMessage())
+                    .text(message)
                     .parseMode(ParseMode.HTML)
-                    .replyMarkup(InlineKey.listGroupButton(list, visNext, visBack))
+                    .replyMarkup(InlineKey.checkLimits(visNext, visBack))
                     .build();
 
             client.execute(editMessage);
         } catch (TelegramApiException e) {
             log.error("Ошибка при изменении сообщения: {}",  e.toString());
         }
+    }
+
+    private void sendMessage(Long chatId, String message, boolean visNext, boolean visBack) {
+        try {
+            var sendMessage = SendMessage.builder()
+                    .text(message)
+                    .chatId(chatId)
+                    .parseMode(ParseMode.HTML)
+                    .replyMarkup(InlineKey.checkLimits(visNext, visBack))
+                    .build();
+            client.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error("Ошибка при отправке списка групп. Пользователь: {}. Ошибка: {}", chatId, e.toString());
+        }
+    }
+
+    private Page<Group> getPages(Long chatId) {
+        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
+        Pageable pageable = PageRequest.of(currentPage, PAGE_ELEMENTS);
+        return groupService.findByChatId(chatId, pageable);
     }
 
     private void answerCallback(String callBackQueryId) {
@@ -91,31 +112,12 @@ public class ListGroupImpl implements ListGroup {
         }
     }
 
-    private void sendMessage(Long chatId, List<Group> groups, boolean visNext, boolean visBack) {
-        try {
-            var sendMessage = SendMessage.builder()
-                    .text(generateMessage())
-                    .chatId(chatId)
-                    .parseMode(ParseMode.HTML)
-                    .replyMarkup(InlineKey.listGroupButton(groups, visNext, visBack))
-                    .build();
-            client.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error("Ошибка при отправке списка групп. Пользователь: {}. Ошибка: {}", chatId, e.toString());
-        }
-    }
+    private String generateMessage(List<Group> groups) {
+        var sb = new StringBuilder("<b>Оставшиеся лимиты ваших групп 📋</b>\n\n");
 
-    private Page<Group> getPages(Long chatId) {
-        var currentPage = UserCurrentPages.getListGroupCurrentPage(chatId);
-        Pageable pageable = PageRequest.of(currentPage, MAX_ELEMENT_PAGE);
-        return groupService.findByChatId(chatId, pageable);
-    }
+        groups.forEach(g -> sb.append("Группа: %s\n".formatted(g.getTitle()))
+                .append("Осталось символов: %d\n\n".formatted(g.getLimitCharacters())));
 
-    private String generateMessage() {
-        return """
-                <b>Список групп</b>
-                
-                Тут вы можете посмотреть список групп, которые вы добавили, а так же удалить ненужные группы или докупить символы для групп.
-                """;
+        return sb.toString();
     }
 }
