@@ -18,6 +18,7 @@ public class Group {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "group_id")
     private Long groupId;
 
     private Long chatId;
@@ -27,6 +28,9 @@ public class Group {
     private String title;
 
     private Integer limitCharacters;
+
+    @OneToMany(mappedBy = "group")
+    private List<TranslationMessage> translationMessages;
 
     @ManyToOne
     @JoinColumn(name = "user_groups", referencedColumnName = "user_id")

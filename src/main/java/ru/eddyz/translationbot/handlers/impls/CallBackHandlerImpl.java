@@ -24,6 +24,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
     private final CreateInvoice createInvoice;
     private final HistoryPayments historyPayments;
     private final CloseHistoryPayment closeHistoryPayment;
+    private final ShowLanguage showLanguage;
 
     @Override
     public void handle(CallbackQuery callbackQuery) {
@@ -55,6 +56,9 @@ public class CallBackHandlerImpl implements CallBackHandler {
             selectPaymentType.execute(callbackQuery);
         } else if (data.startsWith(ButtonSelectPaymentType.BACK_SETTING_GROUP.name())) {
             openSettingGroup.execute(callbackQuery);
+        } else if (data.startsWith(ButtonLanguageList.BACK_SETTING_FROM_LANGUAGE_LIST.name())) {
+            UserCurrentPages.resetLanguageCurrentPage(callbackQuery.getMessage().getChatId());
+            openSettingGroup.execute(callbackQuery);
         } else if (data.startsWith(ButtonPriceList.BACK_SELECTED_PRICE.name())) {
             UserCurrentPages.resetPriceCurrentPage(callbackQuery.getMessage().getChatId());
             selectPaymentType.execute(callbackQuery);
@@ -78,6 +82,14 @@ public class CallBackHandlerImpl implements CallBackHandler {
             historyPayments.execute(callbackQuery);
         } else if (data.equals(ButtonHistoryPayment.CLOSE_HISTORY.name())) {
             closeHistoryPayment.execute(callbackQuery);
+        } else if (data.startsWith(SettingGroupBtn.SELECT_LANGUAGE.name())) {
+            showLanguage.execute(callbackQuery);
+        } else if (data.startsWith(ButtonLanguageList.NEXT_PAGE_LANGUAGE.name())) {
+            UserCurrentPages.languagesNextPage(callbackQuery.getMessage().getChatId());
+            showLanguage.execute(callbackQuery);
+        } else if (data.startsWith(ButtonLanguageList.BACK_PAGE_LANGUAGE.name())) {
+            UserCurrentPages.languageBackPage(callbackQuery.getMessage().getChatId());
+            showLanguage.execute(callbackQuery);
         }
     }
 

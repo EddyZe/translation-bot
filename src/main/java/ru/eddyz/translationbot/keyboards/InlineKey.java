@@ -5,7 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.eddyz.translationbot.domain.entities.Group;
-import ru.eddyz.translationbot.domain.entities.Payment;
+import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
 import ru.eddyz.translationbot.domain.entities.Price;
 import ru.eddyz.translationbot.domain.enums.*;
 
@@ -92,6 +92,57 @@ public class InlineKey {
                     return new InlineKeyboardRow(btn);
                 })
                 .toList();
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+    }
+
+    public static InlineKeyboardMarkup selectLanguage(List<LanguageTranslation> languages,
+                                                      Group group,
+                                                      boolean visNext,
+                                                      boolean visBack) {
+        var rows = new ArrayList<InlineKeyboardRow>();
+        var nextAndBackRow = new InlineKeyboardRow();
+
+        languages.forEach(l -> {
+            var text = l.getTitle();
+            if (group.getLanguages().contains(l))
+                text = l.getTitle() + "✅";
+
+            var btn = InlineKeyboardButton.builder()
+                    .text(text)
+                    .callbackData(ButtonLanguageList.BUTTON_LANGUAGE_LIST.name() + ":" + l.getLanguageId() + ":" + group.getGroupId())
+                    .build();
+
+            rows.add(new InlineKeyboardRow(btn));
+        });
+
+        if (visBack) {
+            var back = InlineKeyboardButton.builder()
+                    .text(ButtonLanguageList.BACK_PAGE_LANGUAGE.toString())
+                    .callbackData(ButtonLanguageList.BACK_PAGE_LANGUAGE.name() + ":" + group.getGroupId())
+                    .build();
+
+            nextAndBackRow.add(back);
+        }
+
+        if (visNext) {
+            var next = InlineKeyboardButton.builder()
+                    .text(ButtonLanguageList.NEXT_PAGE_LANGUAGE.toString())
+                    .callbackData(ButtonLanguageList.NEXT_PAGE_LANGUAGE.name() + ":" + group.getGroupId())
+                    .build();
+
+            nextAndBackRow.add(next);
+        }
+
+        var close = InlineKeyboardButton.builder()
+                .text(ButtonLanguageList.BACK_SETTING_FROM_LANGUAGE_LIST.toString())
+                .callbackData(ButtonLanguageList.BACK_SETTING_FROM_LANGUAGE_LIST.name() + ":" + group.getGroupId())
+                .build();
+
+        rows.add(nextAndBackRow);
+        rows.add(new InlineKeyboardRow(close));
 
         return InlineKeyboardMarkup.builder()
                 .keyboard(rows)

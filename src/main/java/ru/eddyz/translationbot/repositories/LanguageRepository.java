@@ -11,6 +11,4 @@ import java.util.Optional;
 public interface LanguageRepository extends JpaRepository<LanguageTranslation, Long> {
 
     Optional<LanguageTranslation> findByCode(String code);
-
-
 }
