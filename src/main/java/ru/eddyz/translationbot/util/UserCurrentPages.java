@@ -9,10 +9,14 @@ public class UserCurrentPages {
     private static final Map<Long, Integer> listGroupCurrentPage = new ConcurrentHashMap<>();
     private static final Map<Long, Integer> checkLimitCurrentPage = new ConcurrentHashMap<>();
     private static final Map<Long, Integer> priceCurrentPage = new ConcurrentHashMap<>();
+    private static final Map<Long, Integer> historyPaymentCurrentPage = new ConcurrentHashMap<>();
 
 
     public static Integer getPriceCurrentPage(Long chatId) {
         return currentPage(chatId, priceCurrentPage);
+    }
+    public static Integer getHistoryPaymentCurrentPage(Long chatId) {
+        return currentPage(chatId, historyPaymentCurrentPage);
     }
 
     public static Integer getCheckLimitCurrentPage(Long chatId) {
@@ -26,6 +30,9 @@ public class UserCurrentPages {
     public static void resetPriceCurrentPage(Long chatId) {
         resetPage(chatId, priceCurrentPage);
     }
+    public static void resetHistoryPaymentCurrentPage(Long chatId) {
+        resetPage(chatId, historyPaymentCurrentPage);
+    }
 
     public static void resetCheckListCurrentPage(Long chatId) {
         resetPage(chatId, checkLimitCurrentPage);
@@ -33,6 +40,10 @@ public class UserCurrentPages {
 
     public static void resetListGroupCurrentPage(Long chatId) {
         resetPage(chatId, listGroupCurrentPage);
+    }
+
+    public static void historyPaymentNextPage(Long chatId) {
+        nextPage(chatId, historyPaymentCurrentPage);
     }
 
     public static void priceNextPage(Long chatId) {
@@ -45,6 +56,10 @@ public class UserCurrentPages {
 
     public static void listGroupNextPage(Long chatId) {
         nextPage(chatId, listGroupCurrentPage);
+    }
+
+    public static void historyPaymentBackPage(Long chatId) {
+        backPage(chatId, historyPaymentCurrentPage);
     }
 
     public static void priceBackPage(Long chatId) {

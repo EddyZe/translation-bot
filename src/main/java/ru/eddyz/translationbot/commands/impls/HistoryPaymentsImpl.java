@@ -14,33 +14,32 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.eddyz.translationbot.commands.CheckLimit;
-import ru.eddyz.translationbot.domain.entities.Group;
+import ru.eddyz.translationbot.commands.HistoryPayments;
+import ru.eddyz.translationbot.domain.entities.Payment;
 import ru.eddyz.translationbot.keyboards.InlineKey;
-import ru.eddyz.translationbot.services.GroupService;
+import ru.eddyz.translationbot.services.PaymentService;
 import ru.eddyz.translationbot.util.UserCurrentPages;
-import ru.eddyz.translationbot.util.UserState;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CheckLimitImpl implements CheckLimit {
+public class HistoryPaymentsImpl implements HistoryPayments {
 
-    private final TelegramClient client;
-    private final GroupService groupService;
+    private final TelegramClient telegramClient;
+    private final PaymentService paymentService;
 
-    private final int PAGE_ELEMENTS = 5;
+    private final int MAX_ELEMENTS = 5;
 
     @Override
     public void execute(Message message) {
         var chatId = message.getChatId();
-        UserState.clearAll(chatId);
 
-        var elements = getPages(chatId);
-        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
+        var currentPage = UserCurrentPages.getHistoryPaymentCurrentPage(chatId);
+        var elements = getPages(chatId, currentPage);
 
         var totalPages = elements.getTotalPages();
         var visNext = currentPage < totalPages - 1;
@@ -52,35 +51,32 @@ public class CheckLimitImpl implements CheckLimit {
     @Override
     public void execute(CallbackQuery callbackQuery) {
         var chatId = callbackQuery.getMessage().getChatId();
-        UserState.clearAll(chatId);
-
         var messageId = callbackQuery.getMessage().getMessageId();
-        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
-        var groups = getPages(chatId);
 
-        var totalPages = groups.getTotalPages();
+        var currentPage = UserCurrentPages.getHistoryPaymentCurrentPage(chatId);
+        var elements = getPages(chatId, currentPage);
+
+        var totalPages = elements.getTotalPages();
         var visNext = currentPage < totalPages - 1;
         var visBack = currentPage > 0;
 
-        editMessage(chatId, messageId, generateMessage(groups.stream().toList()), visNext, visBack);
-
+        editMessage(chatId, messageId, generateMessage(elements.stream().toList()), visNext, visBack);
         answerCallback(callbackQuery.getId());
     }
 
     private void editMessage(Long chatId, Integer messageId, String message, boolean visNext, boolean visBack) {
         try {
-            var editMessage = EditMessageText
-                    .builder()
-                    .messageId(messageId)
+            var editMessage = EditMessageText.builder()
                     .chatId(chatId)
-                    .text(message)
+                    .messageId(messageId)
                     .parseMode(ParseMode.HTML)
-                    .replyMarkup(InlineKey.checkLimits(visNext, visBack))
+                    .text(message)
+                    .replyMarkup(InlineKey.historyPayment(visNext, visBack))
                     .build();
 
-            client.execute(editMessage);
+            telegramClient.execute(editMessage);
         } catch (TelegramApiException e) {
-            log.error("Ошибка при изменении сообщения: {}",  e.toString());
+            log.error("Ошибка при изменении сообщения в истории платежей: {}", e.toString());
         }
     }
 
@@ -90,34 +86,43 @@ public class CheckLimitImpl implements CheckLimit {
                     .text(message)
                     .chatId(chatId)
                     .parseMode(ParseMode.HTML)
-                    .replyMarkup(InlineKey.checkLimits(visNext, visBack))
+                    .replyMarkup(InlineKey.historyPayment(visNext, visBack))
                     .build();
-            client.execute(sendMessage);
+
+            telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Ошибка при отправке списка групп. Пользователь: {}. Ошибка: {}", chatId, e.toString());
+            log.error("Ошибка при отправке сообщения с историей платежей: {}", e.toString());
         }
     }
 
-    private Page<Group> getPages(Long chatId) {
-        var currentPage = UserCurrentPages.getCheckLimitCurrentPage(chatId);
-        Pageable pageable = PageRequest.of(currentPage, PAGE_ELEMENTS);
-        return groupService.findByChatId(chatId, pageable);
+    private String generateMessage(List<Payment> payments) {
+        var sb = new StringBuilder("<b>История платежей 📋</b>\n\n");
+        var dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm");
+
+        payments.stream()
+                .sorted(((o1, o2) -> {
+                    if (o2.getCreatedAt().isAfter(o1.getCreatedAt()))
+                        return 1;
+                    else return -1;
+                }))
+                .forEach(payment -> sb
+                .append("<b>ID платежа</b>: %s\n".formatted(payment.getPaymentId()))
+                .append("<b>Сумма</b>: %.2f %s\n".formatted(payment.getAmount(),payment.getAsset()))
+                .append("<b>Дата</b>: %s\n\n".formatted(dtf.format(payment.getCreatedAt()))));
+
+        return sb.toString();
+    }
+
+    private Page<Payment> getPages(Long chatId, Integer currentPage) {
+        Pageable pageable = PageRequest.of(currentPage, MAX_ELEMENTS);
+        return paymentService.findByChatId(chatId, pageable);
     }
 
     private void answerCallback(String callBackQueryId) {
         try {
-            client.execute(new AnswerCallbackQuery(callBackQueryId));
+            telegramClient.execute(new AnswerCallbackQuery(callBackQueryId));
         } catch (TelegramApiException e) {
             log.error("Ошибка при нажатии кнопки: {}", e.toString());
         }
-    }
-
-    private String generateMessage(List<Group> groups) {
-        var sb = new StringBuilder("<b>Оставшиеся лимиты ваших групп 📋</b>\n\n");
-
-        groups.forEach(g -> sb.append("<b>Группа</b>: %s\n".formatted(g.getTitle()))
-                .append("<b>Осталось символов</b>: %d\n\n".formatted(g.getLimitCharacters())));
-
-        return sb.toString();
     }
 }

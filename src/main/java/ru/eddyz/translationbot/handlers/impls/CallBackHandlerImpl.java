@@ -22,6 +22,8 @@ public class CallBackHandlerImpl implements CallBackHandler {
     private final SelectPaymentType selectPaymentType;
     private final ShowPrices showPrices;
     private final CreateInvoice createInvoice;
+    private final HistoryPayments historyPayments;
+    private final CloseHistoryPayment closeHistoryPayment;
 
     @Override
     public void handle(CallbackQuery callbackQuery) {
@@ -68,6 +70,14 @@ public class CallBackHandlerImpl implements CallBackHandler {
             showPrices.execute(callbackQuery, getPaymentType(callbackQuery.getData()));
         } else if (data.startsWith(ButtonPriceList.PRICE_LIST.name())) {
             createInvoice.execute(callbackQuery);
+        } else if(data.equals(ButtonHistoryPayment.NEXT_PAGE_HISTORY.name())) {
+            UserCurrentPages.historyPaymentNextPage(callbackQuery.getMessage().getChatId());
+            historyPayments.execute(callbackQuery);
+        } else if (data.equals(ButtonHistoryPayment.BACK_PAGE_HISTORY.name())) {
+            UserCurrentPages.historyPaymentBackPage(callbackQuery.getMessage().getChatId());
+            historyPayments.execute(callbackQuery);
+        } else if (data.equals(ButtonHistoryPayment.CLOSE_HISTORY.name())) {
+            closeHistoryPayment.execute(callbackQuery);
         }
     }
 

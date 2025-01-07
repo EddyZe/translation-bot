@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.eddyz.translationbot.domain.entities.Group;
+import ru.eddyz.translationbot.domain.entities.Payment;
 import ru.eddyz.translationbot.domain.entities.Price;
 import ru.eddyz.translationbot.domain.enums.*;
 
@@ -46,27 +47,31 @@ public class InlineKey {
     public static InlineKeyboardMarkup checkLimits(boolean visNext, boolean visBack) {
         var rows = new ArrayList<InlineKeyboardRow>();
 
-        var nextAndBackButton = new InlineKeyboardRow();
-
-        if (visBack) {
-            var back = InlineKeyboardButton.builder()
-                    .text(ButtonCheckLimit.BACK_CHECK_LIMIT.toString())
-                    .callbackData(ButtonCheckLimit.BACK_CHECK_LIMIT.name())
-                    .build();
-            nextAndBackButton.add(back);
-        }
-
-        if (visNext) {
-            var next = InlineKeyboardButton.builder()
-                    .text(ButtonCheckLimit.NEXT_CHECK_LIMIT.toString())
-                    .callbackData(ButtonCheckLimit.NEXT_CHECK_LIMIT.name())
-                    .build();
-            nextAndBackButton.add(next);
-        }
+        var nextAndBackButton = generateNextAndBackRow(visNext, visBack,
+                ButtonCheckLimit.NEXT_CHECK_LIMIT, ButtonCheckLimit.BACK_CHECK_LIMIT);
 
         var close = InlineKeyboardButton.builder()
                 .text(ButtonCheckLimit.CLOSE_CHECK_LIMIT.toString())
                 .callbackData(ButtonCheckLimit.CLOSE_CHECK_LIMIT.name())
+                .build();
+
+        rows.add(nextAndBackButton);
+        rows.add(new InlineKeyboardRow(close));
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+    }
+
+    public static InlineKeyboardMarkup historyPayment(boolean visNext, boolean visBack) {
+        var rows = new ArrayList<InlineKeyboardRow>();
+
+        var nextAndBackButton = generateNextAndBackRow(visNext, visBack,
+                ButtonHistoryPayment.NEXT_PAGE_HISTORY, ButtonHistoryPayment.BACK_PAGE_HISTORY);
+
+        var close = InlineKeyboardButton.builder()
+                .text(ButtonHistoryPayment.CLOSE_HISTORY.toString())
+                .callbackData(ButtonHistoryPayment.CLOSE_HISTORY.name())
                 .build();
 
         rows.add(nextAndBackButton);

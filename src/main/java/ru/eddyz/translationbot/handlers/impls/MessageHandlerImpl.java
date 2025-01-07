@@ -3,10 +3,7 @@ package ru.eddyz.translationbot.handlers.impls;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import ru.eddyz.translationbot.commands.AddGroup;
-import ru.eddyz.translationbot.commands.CheckLimit;
-import ru.eddyz.translationbot.commands.ListGroup;
-import ru.eddyz.translationbot.commands.Start;
+import ru.eddyz.translationbot.commands.*;
 import ru.eddyz.translationbot.domain.enums.MainMenuButton;
 import ru.eddyz.translationbot.domain.enums.UserStates;
 import ru.eddyz.translationbot.handlers.MessageHandler;
@@ -23,6 +20,7 @@ public class MessageHandlerImpl implements MessageHandler {
     private final AddGroup addGroup;
     private final CheckLimit checkLimit;
     private final SuccessfulPaymentHandler successfulPaymentHandler;
+    private final HistoryPayments historyPayments;
 
     @Override
     public void handle(Message message) {
@@ -37,7 +35,9 @@ public class MessageHandlerImpl implements MessageHandler {
             } else if (text.equals(MainMenuButton.ADD_GROUP.toString())) {
                 UserState.setUserState(message.getChatId(), MainMenuButton.ADD_GROUP);
                 addGroup.execute(message);
-            } else {
+            } else if (text.equals(MainMenuButton.MY_HISTORY_PAYMENTS.toString())) {
+                historyPayments.execute(message);
+            }else {
                 var currentState = UserState.getUserState(message.getChatId());
                 if (currentState.isPresent()) {
 
