@@ -25,6 +25,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
     private final HistoryPayments historyPayments;
     private final CloseHistoryPayment closeHistoryPayment;
     private final ShowLanguage showLanguage;
+    private final AddLanguage addLanguage;
 
     @Override
     public void handle(CallbackQuery callbackQuery) {
@@ -90,6 +91,8 @@ public class CallBackHandlerImpl implements CallBackHandler {
         } else if (data.startsWith(ButtonLanguageList.BACK_PAGE_LANGUAGE.name())) {
             UserCurrentPages.languageBackPage(callbackQuery.getMessage().getChatId());
             showLanguage.execute(callbackQuery);
+        } else if (data.startsWith(ButtonLanguageList.BUTTON_LANGUAGE_LIST.name())) {
+            addLanguage.execute(callbackQuery);
         }
     }
 

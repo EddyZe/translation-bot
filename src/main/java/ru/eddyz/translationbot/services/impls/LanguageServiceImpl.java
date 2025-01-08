@@ -29,4 +29,15 @@ public class LanguageServiceImpl implements LanguageService {
     public Page<LanguageTranslation> finaAll(Pageable pageable) {
         return languageRepository.findAll(pageable);
     }
+
+    @Override
+    public LanguageTranslation findById(Long id) {
+        return languageRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Язык с таким ID не найден."));
+    }
+
+    @Override
+    public void save(LanguageTranslation languageTranslation) {
+        languageRepository.save(languageTranslation);
+    }
 }

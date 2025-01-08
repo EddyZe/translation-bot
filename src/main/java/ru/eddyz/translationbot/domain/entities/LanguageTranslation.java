@@ -24,11 +24,11 @@ public class LanguageTranslation {
 
     private String code;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REFRESH)
     @JoinTable(
             name = "language_translations_groups",
-            joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "language_id")
+            joinColumns = @JoinColumn(name = "language_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     private List<Group> chats;
 

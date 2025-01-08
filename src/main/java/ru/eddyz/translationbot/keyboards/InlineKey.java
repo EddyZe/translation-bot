@@ -108,7 +108,7 @@ public class InlineKey {
         languages.forEach(l -> {
             var text = l.getTitle();
             if (group.getLanguages().contains(l))
-                text = l.getTitle() + "✅";
+                text = l.getTitle() + " ✅";
 
             var btn = InlineKeyboardButton.builder()
                     .text(text)

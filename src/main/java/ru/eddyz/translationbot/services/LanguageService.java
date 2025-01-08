@@ -9,4 +9,8 @@ public interface LanguageService {
 
     LanguageTranslation findByCode(String code);
     Page<LanguageTranslation> finaAll(Pageable pageable);
+
+    LanguageTranslation findById(Long id);
+
+    void save(LanguageTranslation languageTranslation);
 }
