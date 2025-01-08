@@ -23,4 +23,5 @@ public interface GroupService {
     Group findByTelegramChatId(Long telegramGroupId);
 
     void deleteByTelegramChatId(Long id);
+
 }

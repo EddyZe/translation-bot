@@ -10,4 +10,6 @@ public interface UserService {
     Optional<User> findByChatId(Long chatId);
 
     void save(User newUser);
+
+    User findByUsername(String username);
 }

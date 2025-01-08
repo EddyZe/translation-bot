@@ -29,4 +29,10 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(newUser);
     }
+
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("Пользователь с таким username не найден"));
+    }
 }

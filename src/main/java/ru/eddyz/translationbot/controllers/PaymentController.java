@@ -44,8 +44,6 @@ public class PaymentController {
             var paymentPayload = objectMapper.readValue(updateCrypto.getPayload().getPayload(), PaymentPayload.class);
 
             successfulPaymentService.successfulPaymentChars(paymentPayload, null);
-
-            //TODO добавить уведомление для админа
         } catch (JsonProcessingException e) {
             log.error("Ошибка при парсинге json в payload crypto: {}", e.toString());
             return ResponseEntity.badRequest().build();
