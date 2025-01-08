@@ -66,7 +66,7 @@ public class AddLanguageImpl implements AddLanguage {
             }
 
             group.setLanguages(groupLanguages);
-            groupService.save(group);
+            groupService.update(group);
             languageService.save(currentLanguage);
 
             var totalPages = elements.getTotalPages();

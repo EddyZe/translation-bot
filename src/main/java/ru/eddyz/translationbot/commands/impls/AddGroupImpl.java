@@ -87,6 +87,8 @@ public class AddGroupImpl implements AddGroup {
             sendMessage(chatId, "Группа успешна добавлена. Не забудьте добавить бота в группу и сделать его администратором");
         } catch (NumberFormatException e) {
             sendMessage(chatId, "ID должно содержать только цифры! Введите ID снова: ");
+        } catch (IllegalArgumentException e) {
+            sendMessage(chatId, "Группа с таким ID уже существует. Повторите попытку!");
         }
     }
 

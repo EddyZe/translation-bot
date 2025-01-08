@@ -20,6 +20,7 @@ telegram:
     username: ${BOT_USERNAME:translationgroup_bot}
     username-admin: ${USERNAME_ADMIN:edzeeeee}
     bot-url: ${BOT_URL:https://t.me/translationgroup_bot}
+    notification-chars: 1000
   groups:
     starting-chars: ${STARTING_CHARS:10000}
 

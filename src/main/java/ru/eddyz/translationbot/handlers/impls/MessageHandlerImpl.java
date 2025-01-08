@@ -21,6 +21,7 @@ public class MessageHandlerImpl implements MessageHandler {
     private final CheckLimit checkLimit;
     private final SuccessfulPaymentHandler successfulPaymentHandler;
     private final HistoryPayments historyPayments;
+    private final TranslationGroupMessage translationGroupMessage;
 
     @Override
     public void handle(Message message) {
@@ -50,6 +51,8 @@ public class MessageHandlerImpl implements MessageHandler {
             }
         } else if (message.hasSuccessfulPayment()) {
             successfulPaymentHandler.handle(message.getSuccessfulPayment());
+        } else if (message.isGroupMessage() || message.isSuperGroupMessage()) {
+            translationGroupMessage.execute(message);
         }
     }
 }

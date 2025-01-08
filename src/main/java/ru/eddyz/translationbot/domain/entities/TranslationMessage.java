@@ -19,7 +19,12 @@ public class TranslationMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long messageId;
+
+    @Column(length = 4096)
     private String message;
+
+    @Column(length = 4096)
+    private String messageTranslate;
     private Integer numberCharacters;
     private LocalDateTime translationTime;
 

@@ -10,7 +10,6 @@ import ru.eddyz.translationbot.services.GroupService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 
 @Service
@@ -28,7 +27,15 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void save(Group newGroup) {
+        if (groupRepository.findByTelegramGroupId(newGroup.getTelegramGroupId()).isPresent())
+            throw new IllegalArgumentException("Группа с таким ID существует!");
+
         groupRepository.save(newGroup);
+    }
+
+    @Override
+    public void update(Group group) {
+        groupRepository.save(group);
     }
 
     @Override
@@ -43,5 +50,21 @@ public class GroupServiceImpl implements GroupService {
     public Group findById(Long id) {
         return groupRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Группа с таким ID не найдена!"));
+    }
+
+    @Override
+    public List<Group> findByMinChars(Integer chars) {
+        return groupRepository.findByMinChars(chars);
+    }
+
+    @Override
+    public Group findByTelegramChatId(Long telegramGroupId) {
+        return groupRepository.findByTelegramGroupId(telegramGroupId)
+                .orElseThrow(() -> new NoSuchElementException("Такая группа не найдена!"));
+    }
+
+    @Override
+    public void deleteByTelegramChatId(Long id) {
+        groupRepository.deleteByTelegramGroupId(id);
     }
 }
