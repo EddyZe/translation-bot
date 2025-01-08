@@ -72,7 +72,7 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
 
         var groupCurrentCharacters = group.getLimitCharacters();
         group.setLimitCharacters(groupCurrentCharacters + price.getNumberCharacters());
-        groupService.save(group);
+        groupService.update(group);
 
         sendMessage(group.getChatId(), generateMessage(payment, group));
         try {
@@ -108,6 +108,6 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
     private String generateAdminMessage(User user, Payment payment, Group group) {
         return """
                 Пользователь %s приобрел %d символов для группы %s
-                """.formatted(user.getUsername(), group.getTitle(), payment.getNumberCharacters());
+                """.formatted(user.getUsername(), payment.getNumberCharacters(), group.getTitle());
     }
 }

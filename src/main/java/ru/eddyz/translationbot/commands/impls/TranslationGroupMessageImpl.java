@@ -12,11 +12,13 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.clients.yandex.YandexTranslateClient;
 import ru.eddyz.translationbot.commands.TranslationGroupMessage;
 import ru.eddyz.translationbot.domain.entities.Group;
+import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
 import ru.eddyz.translationbot.domain.entities.TranslationMessage;
 import ru.eddyz.translationbot.services.GroupService;
 import ru.eddyz.translationbot.services.TranslationMessagesService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 
@@ -39,6 +41,7 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
 
         var detectLanguageCode = yandexTranslateClient.detect(text).getLanguageCode();
         var group = groupService.findByTelegramChatId(groupChatId);
+        var groupLanguages = new ArrayList<>(group.getLanguages());
 
 
         var currentChars = group.getLimitCharacters();
@@ -49,18 +52,17 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
             return;
         }
 
-                group.getLanguages()
-                .forEach(lang -> {
-                    if (!lang.getCode().equals(detectLanguageCode)) {
-                        var translationText = yandexTranslateClient
-                                .translate(text, lang.getCode())
-                                .getTranslations().getFirst().getText();
-                        sendMessage(groupChatId, translationText, messageId);
-                        group.setLimitCharacters(newChatsLimit);
-                        groupService.update(group);
-                        translationMessagesService.save(buildTranslationMesssage(group, text, translationText));
-                    }
-                });
+        for (LanguageTranslation lang : groupLanguages) {
+            if (!lang.getCode().equals(detectLanguageCode)) {
+                var translationText = yandexTranslateClient
+                        .translate(text, lang.getCode())
+                        .getTranslations().getFirst().getText();
+                sendMessage(groupChatId, translationText, messageId);
+                group.setLimitCharacters(newChatsLimit);
+                groupService.update(group);
+                translationMessagesService.save(buildTranslationMesssage(group, text, translationText));
+            }
+        }
 
     }
 

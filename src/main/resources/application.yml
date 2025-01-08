@@ -14,6 +14,7 @@ spring:
     hibernate:
       ddl-auto: update
 
+
 telegram:
   bot:
     token: ${BOT_TOKEN:7653790514:AAEjzQNNEnBdKjfxHKoozQik1g8RZTMCCcw}
@@ -35,3 +36,5 @@ yandex:
     token: ${YANDEX_TRANSLATE_TOKEN:AQVNyPiEAuvo72PgR_vn3zNsZcPtNaAbgZd1-fLj}
     folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
     base-url: ${YANDEX_BASE_URL:https://translate.api.cloud.yandex.net/translate/v2}
+server:
+  port: 8080
