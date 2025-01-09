@@ -29,14 +29,14 @@ public class Group {
 
     private Integer limitCharacters;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private List<TranslationMessage> translationMessages;
 
     @ManyToOne
     @JoinColumn(name = "user_groups", referencedColumnName = "user_id")
     private User owner;
 
-    @ManyToMany(mappedBy = "chats")
+    @ManyToMany(mappedBy = "chats", cascade = CascadeType.REMOVE)
     private List<LanguageTranslation> languages;
 
     @Override

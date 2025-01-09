@@ -28,7 +28,7 @@ public class TranslationMessage {
     private Integer numberCharacters;
     private LocalDateTime translationTime;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "translation_messages_group", referencedColumnName = "group_id")
     private Group group;
     @Override

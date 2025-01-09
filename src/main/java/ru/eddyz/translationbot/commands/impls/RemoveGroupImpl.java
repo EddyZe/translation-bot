@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.commands.ListGroup;
 import ru.eddyz.translationbot.commands.RemoveGroup;
+import ru.eddyz.translationbot.domain.entities.DeletedGroup;
+import ru.eddyz.translationbot.services.DeletedGroupService;
 import ru.eddyz.translationbot.services.GroupService;
 
 import java.util.NoSuchElementException;
@@ -25,6 +27,7 @@ public class RemoveGroupImpl implements RemoveGroup {
     private final GroupService groupService;
     private final TelegramClient client;
     private final ListGroup listGroup;
+    private final DeletedGroupService deletedGroupService;
 
 
     @Override
@@ -36,6 +39,20 @@ public class RemoveGroupImpl implements RemoveGroup {
 
 
         try {
+            var group = groupService.findById(groupId);
+            var deletedGroupOp = deletedGroupService.findByTelegramGroupId(group.getTelegramGroupId());
+
+            if (deletedGroupOp.isEmpty()) {
+                deletedGroupService.save(DeletedGroup.builder()
+                        .telegramGroupId(group.getTelegramGroupId())
+                        .chars(group.getLimitCharacters())
+                        .build());
+            } else {
+                var deletedGroup = deletedGroupOp.get();
+                deletedGroup.setChars(group.getLimitCharacters());
+                deletedGroupService.save(deletedGroup);
+            }
+
             groupService.deleteById(groupId);
             sendMessage(chatId, "Группа Удалена");
             deleteMessage(chatId, messageId);
@@ -59,7 +76,7 @@ public class RemoveGroupImpl implements RemoveGroup {
         }
     }
 
-    private void answerCallBack(String id ) {
+    private void answerCallBack(String id) {
         try {
             client.execute(new AnswerCallbackQuery(id));
         } catch (TelegramApiException e) {

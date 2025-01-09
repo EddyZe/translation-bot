@@ -14,6 +14,7 @@ import ru.eddyz.translationbot.commands.AddGroup;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.domain.enums.MainMenuButton;
 import ru.eddyz.translationbot.domain.enums.UserStates;
+import ru.eddyz.translationbot.services.DeletedGroupService;
 import ru.eddyz.translationbot.services.GroupService;
 import ru.eddyz.translationbot.services.UserService;
 import ru.eddyz.translationbot.util.UserState;
@@ -31,6 +32,7 @@ public class AddGroupImpl implements AddGroup {
     private final TelegramClient client;
     private final GroupService groupService;
     private final UserService userService;
+    private final DeletedGroupService deletedGroupService;
 
     @Value("${telegram.groups.starting-chars}")
     private Integer startingCharGroup;
@@ -79,6 +81,10 @@ public class AddGroupImpl implements AddGroup {
                     .telegramGroupId(idGroup)
                     .limitCharacters(startingCharGroup)
                     .build();
+
+            var deletedGroup = deletedGroupService.findByTelegramGroupId(idGroup);
+
+            deletedGroup.ifPresent(group -> newGroup.setLimitCharacters(group.getChars()));
 
             groupService.save(newGroup);
             UserState.clearUserState(chatId);
