@@ -38,17 +38,22 @@ public class PaymentController {
         if (!token.equals(cryptoPayToken)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Token invalid"));
-        }
-        log.info("Обработка updateId: {}", updateCrypto.getUpdateId());
-        try {
-            var paymentPayload = objectMapper.readValue(updateCrypto.getPayload().getPayload(), PaymentPayload.class);
+        } else {
+            log.info("Обработка updateId: {}", updateCrypto.getUpdateId());
+            try {
 
-            successfulPaymentService.successfulPaymentChars(paymentPayload, null);
-        } catch (JsonProcessingException e) {
-            log.error("Ошибка при парсинге json в payload crypto: {}", e.toString());
-            return ResponseEntity.badRequest().build();
+                if (updateCrypto.getPayload().getStatus().equals("paid")) {
+                    var paymentPayload = objectMapper.readValue(updateCrypto.getPayload().getPayload(), PaymentPayload.class);
+                    successfulPaymentService.successfulPaymentChars(paymentPayload, null);
+                    return ResponseEntity.ok(HttpStatus.OK);
+                }
+
+            } catch (JsonProcessingException e) {
+                log.error("Ошибка при парсинге json в payload crypto: {}", e.toString());
+                return ResponseEntity.badRequest().build();
+            }
         }
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler(NoSuchElementException.class)

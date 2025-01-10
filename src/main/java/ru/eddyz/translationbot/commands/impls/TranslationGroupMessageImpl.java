@@ -60,17 +60,19 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
                 sendMessage(groupChatId, translationText, messageId);
                 group.setLimitCharacters(newChatsLimit);
                 groupService.update(group);
-                translationMessagesService.save(buildTranslationMesssage(group, text, translationText));
+                translationMessagesService.save(buildTranslationMesssage(group, text, translationText,
+                        message.getChat().getUserName()));
             }
         }
 
     }
 
-    private TranslationMessage buildTranslationMesssage(Group group, String text, String translationText) {
+    private TranslationMessage buildTranslationMesssage(Group group, String text, String translationText, String userName) {
         return TranslationMessage.builder()
                 .group(group)
                 .translationTime(LocalDateTime.now())
                 .message(text)
+                .fromUsername(userName)
                 .messageTranslate(translationText)
                 .numberCharacters(text.length())
                 .build();

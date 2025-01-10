@@ -97,7 +97,7 @@ public class HistoryPaymentsImpl implements HistoryPayments {
 
     private String generateMessage(List<Payment> payments) {
         var sb = new StringBuilder("<b>История платежей 📋</b>\n\n");
-        var dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm");
+        var dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         payments.stream()
                 .sorted(((o1, o2) -> {

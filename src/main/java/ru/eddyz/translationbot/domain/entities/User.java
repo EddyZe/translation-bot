@@ -32,10 +32,10 @@ public class User {
 
     private Long chatId;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
     private List<Group> groups;
 
-    @OneToMany(mappedBy = "payer")
+    @OneToMany(mappedBy = "payer", cascade = CascadeType.REMOVE)
     private List<Payment> historyPayments;
 
     @Override

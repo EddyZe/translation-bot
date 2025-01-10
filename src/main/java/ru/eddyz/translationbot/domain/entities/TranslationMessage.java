@@ -20,6 +20,8 @@ public class TranslationMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long messageId;
 
+    private String fromUsername;
+
     @Column(length = 4096)
     private String message;
 
