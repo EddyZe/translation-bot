@@ -36,7 +36,7 @@ public class Group {
     @JoinColumn(name = "user_groups", referencedColumnName = "user_id")
     private User owner;
 
-    @ManyToMany(mappedBy = "chats", cascade = CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "chats")
     private List<LanguageTranslation> languages;
 
     @Override

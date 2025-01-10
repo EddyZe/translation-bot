@@ -67,4 +67,9 @@ public class GroupServiceImpl implements GroupService {
     public void deleteByTelegramChatId(Long id) {
         groupRepository.deleteByTelegramGroupId(id);
     }
+
+    @Override
+    public void deleteLinksLanguages(Long groupId) {
+        groupRepository.deleteGroupLanguageLinks(groupId);
+    }
 }

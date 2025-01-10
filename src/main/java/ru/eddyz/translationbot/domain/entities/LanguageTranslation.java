@@ -24,7 +24,7 @@ public class LanguageTranslation {
 
     private String code;
 
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @ManyToMany
     @JoinTable(
             name = "language_translations_groups",
             joinColumns = @JoinColumn(name = "language_id"),

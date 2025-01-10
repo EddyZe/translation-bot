@@ -48,7 +48,8 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
         var newChatsLimit = currentChars - text.length();
 
         if (newChatsLimit < 0) {
-            sendMessage(group.getChatId(), "Лимит символов для группы %s исчерпан. Докупите символы, для этой группы", messageId);
+            sendMessage(group.getChatId(), "Лимит символов для группы %s исчерпан. Докупите символы, для этой группы"
+                    .formatted(group.getTitle()), null);
             return;
         }
 
@@ -82,10 +83,12 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
         try {
             var sendMessage = SendMessage.builder()
                     .chatId(chatId)
-                    .replyToMessageId(messageId)
                     .text(text)
                     .parseMode(ParseMode.HTML)
                     .build();
+
+            if (messageId != null)
+                sendMessage.setReplyToMessageId(messageId);
 
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {

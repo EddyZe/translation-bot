@@ -3,6 +3,7 @@ package ru.eddyz.translationbot.commands.impls;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.commands.ListGroup;
 import ru.eddyz.translationbot.commands.RemoveGroup;
 import ru.eddyz.translationbot.domain.entities.DeletedGroup;
+import ru.eddyz.translationbot.repositories.LanguageRepository;
 import ru.eddyz.translationbot.services.DeletedGroupService;
 import ru.eddyz.translationbot.services.GroupService;
 
@@ -28,9 +30,11 @@ public class RemoveGroupImpl implements RemoveGroup {
     private final TelegramClient client;
     private final ListGroup listGroup;
     private final DeletedGroupService deletedGroupService;
+    private final LanguageRepository languageRepository;
 
 
     @Override
+    @Transactional
     public void execute(CallbackQuery callbackQuery) {
         var chatId = callbackQuery.getMessage().getChatId();
         var messageId = callbackQuery.getMessage().getMessageId();
@@ -52,7 +56,7 @@ public class RemoveGroupImpl implements RemoveGroup {
                 deletedGroup.setChars(group.getLimitCharacters());
                 deletedGroupService.save(deletedGroup);
             }
-
+            groupService.deleteLinksLanguages(groupId);
             groupService.deleteById(groupId);
             sendMessage(chatId, "Группа Удалена");
             deleteMessage(chatId, messageId);

@@ -24,4 +24,6 @@ public interface GroupService {
 
     void deleteByTelegramChatId(Long id);
 
+    void deleteLinksLanguages(Long groupId);
+
 }

@@ -4,6 +4,7 @@ package ru.eddyz.translationbot.repositories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,4 +23,8 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     @Query(value = "select g from Group as g where g.limitCharacters < :chars")
     List<Group> findByMinChars(@Param("chars") Integer chars);
+
+    @Modifying
+    @Query(value = "DELETE FROM language_translations_groups WHERE group_id = :groupId", nativeQuery = true)
+    void deleteGroupLanguageLinks(@Param("groupId") Long groupId);
 }
