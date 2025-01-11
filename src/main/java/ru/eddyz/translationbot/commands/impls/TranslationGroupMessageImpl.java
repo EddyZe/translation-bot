@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.clients.yandex.YandexTranslateClient;
@@ -14,6 +15,7 @@ import ru.eddyz.translationbot.commands.TranslationGroupMessage;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
 import ru.eddyz.translationbot.domain.entities.TranslationMessage;
+import ru.eddyz.translationbot.keyboards.InlineKey;
 import ru.eddyz.translationbot.services.GroupService;
 import ru.eddyz.translationbot.services.TranslationMessagesService;
 
@@ -47,21 +49,23 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
         var currentChars = group.getLimitCharacters();
         var newChatsLimit = currentChars - text.length();
 
-        if (newChatsLimit < 0) {
+        if (newChatsLimit <= 0) {
             sendMessage(group.getChatId(), "Лимит символов для группы %s исчерпан. Докупите символы, для этой группы"
-                    .formatted(group.getTitle()), null);
+                    .formatted(group.getTitle()), null, InlineKey.selectPaymentMode(group.getGroupId()));
             return;
         }
 
         if (!group.getTranslatingMessages())
             return;
 
+        var sb = new StringBuilder();
+
         for (LanguageTranslation lang : groupLanguages) {
             if (!lang.getCode().equals(detectLanguageCode)) {
                 var translationText = yandexTranslateClient
                         .translate(text, lang.getCode())
                         .getTranslations().getFirst().getText();
-                sendMessage(groupChatId, translationText, messageId);
+                sb.append(translationText).append("\n\n");
                 group.setLimitCharacters(newChatsLimit);
                 groupService.update(group);
                 translationMessagesService.save(buildTranslationMesssage(group, text, translationText,
@@ -69,6 +73,7 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
             }
         }
 
+        sendMessage(groupChatId, sb.toString(), messageId, null);
     }
 
     private TranslationMessage buildTranslationMesssage(Group group, String text, String translationText, String userName) {
@@ -82,7 +87,7 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
                 .build();
     }
 
-    private void sendMessage(Long chatId, String text, Integer messageId) {
+    private void sendMessage(Long chatId, String text, Integer messageId, InlineKeyboardMarkup inlineKeyboardMarkup) {
         try {
             var sendMessage = SendMessage.builder()
                     .chatId(chatId)
@@ -92,6 +97,9 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
 
             if (messageId != null)
                 sendMessage.setReplyToMessageId(messageId);
+
+            if (inlineKeyboardMarkup != null)
+                sendMessage.setReplyMarkup(inlineKeyboardMarkup);
 
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {

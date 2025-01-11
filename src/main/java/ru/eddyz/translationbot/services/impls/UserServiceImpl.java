@@ -23,11 +23,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(User newUser) {
+    public User save(User newUser) {
         if (userRepository.findByChatId(newUser.getChatId()).isPresent())
             throw new IllegalArgumentException("User with this chatId exists");
 
-        userRepository.save(newUser);
+        return userRepository.save(newUser);
     }
 
     @Override

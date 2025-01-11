@@ -37,65 +37,51 @@ public class AddGroupImpl implements AddGroup {
     @Value("${telegram.groups.starting-chars}")
     private Integer startingCharGroup;
 
-    private final Map<Long, String> nameGroup = new ConcurrentHashMap<>();
 
     @Override
     @Transactional
     public void execute(Message message) {
-        var chatId = message.getChatId();
+        var groupChatId = message.getChatId();
+        var userChatId = message.getFrom().getId();
+        var title = message.getChat().getTitle();
+        var commandChatId = Long.parseLong(message.getText().split(" ")[1].trim());
 
-        var currentState = UserState.getUserState(chatId);
-
-        if (currentState.isEmpty())
+        if (userChatId != commandChatId)
             return;
 
-        if (currentState.get() == MainMenuButton.ADD_GROUP) {
-            sendMessage(chatId, generateMessageResponseSetName());
-            UserState.setUserState(chatId, UserStates.ADD_GROUP_SET_NAME);
-        } else if (currentState.get() == UserStates.ADD_GROUP_SET_NAME) {
-            var name = message.getText();
-            nameGroup.put(chatId, name);
-            UserState.setUserState(chatId, UserStates.ADD_GROUP_SET_ID);
-            sendMessage(chatId, "<b>Добавление группы</b>\n\nВведите ID группы: ");
-        } else if (currentState.get() == UserStates.ADD_GROUP_SET_ID) {
-            addNewGroup(chatId, message.getText());
-        }
+        addNewGroup(userChatId, groupChatId, title);
     }
 
-    private void addNewGroup(Long chatId, String text) {
+
+    private void addNewGroup(Long chatId, Long groupChatId, String title) {
         var user = userService.findByChatId(chatId);
         try {
-            var idGroup = Long.parseLong(text);
-
             if (user.isEmpty()) {
                 sendMessage(chatId, "Что-то пошло не так. Попробуйте снова.");
                 UserState.clearUserState(chatId);
-                nameGroup.remove(chatId);
                 return;
             }
 
             var newGroup = Group.builder()
                     .chatId(chatId)
-                    .title(Optional.ofNullable(nameGroup.get(chatId)).orElse("Не указано"))
+                    .title(title)
                     .owner(user.get())
                     .translatingMessages(false)
-                    .telegramGroupId(idGroup)
+                    .telegramGroupId(groupChatId)
                     .limitCharacters(startingCharGroup)
                     .build();
 
-            var deletedGroup = deletedGroupService.findByTelegramGroupId(idGroup);
+            var deletedGroup = deletedGroupService.findByTelegramGroupId(groupChatId);
 
             deletedGroup.ifPresent(group -> newGroup.setLimitCharacters(group.getChars()));
 
             groupService.save(newGroup);
-            UserState.clearUserState(chatId);
-            nameGroup.remove(chatId);
 
-            sendMessage(chatId, "Группа успешна добавлена. Не забудьте добавить бота в группу и сделать его администратором и включить перевод в настройках группы. Чтобы перейти в настройки, откройте свои группы и выберите нужную из списка.");
+            sendMessage(chatId, "Группа %s успешна добавлена.".formatted(title));
         } catch (NumberFormatException e) {
             sendMessage(chatId, "ID должно содержать только цифры! Введите ID снова: ");
         } catch (IllegalArgumentException e) {
-            sendMessage(chatId, "Группа с таким ID уже существует. Повторите попытку!");
+            sendMessage(groupChatId, "Данная группа уже существует в базе!");
         }
     }
 
@@ -111,13 +97,5 @@ public class AddGroupImpl implements AddGroup {
         } catch (TelegramApiException e) {
             log.error("Ошибка при отправке сообщения пользователю: {}. {}", client, e.toString());
         }
-    }
-
-    private String generateMessageResponseSetName() {
-        return """
-                <b>Добавление группы</b>
-                
-                Введите название группы, это нужно для отображения в списке ваших групп:
-                """;
     }
 }

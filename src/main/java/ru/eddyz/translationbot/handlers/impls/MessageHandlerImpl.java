@@ -10,6 +10,8 @@ import ru.eddyz.translationbot.handlers.MessageHandler;
 import ru.eddyz.translationbot.handlers.SuccessfulPaymentHandler;
 import ru.eddyz.translationbot.util.UserState;
 
+import java.util.Optional;
+
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class MessageHandlerImpl implements MessageHandler {
     private final SuccessfulPaymentHandler successfulPaymentHandler;
     private final HistoryPayments historyPayments;
     private final TranslationGroupMessage translationGroupMessage;
+    private final GetChatId getChatId;
 
     @Override
     public void handle(Message message) {
@@ -38,7 +41,9 @@ public class MessageHandlerImpl implements MessageHandler {
                 addGroup.execute(message);
             } else if (text.equals(MainMenuButton.MY_HISTORY_PAYMENTS.toString()) || text.equals("/payments")) {
                 historyPayments.execute(message);
-            }else {
+            } else if (text.equals(MainMenuButton.ID_GROUP.toString())) {
+                getChatId.execute(message);
+            } else {
                 var currentState = UserState.getUserState(message.getChatId());
                 if (currentState.isPresent()) {
 
@@ -52,7 +57,13 @@ public class MessageHandlerImpl implements MessageHandler {
         } else if (message.hasSuccessfulPayment()) {
             successfulPaymentHandler.handle(message.getSuccessfulPayment());
         } else if (message.isGroupMessage() || message.isSuperGroupMessage()) {
-            translationGroupMessage.execute(message);
+            var text = Optional.ofNullable(message.getText()).orElse("");
+
+            if (text.startsWith("/translate")) {
+                addGroup.execute(message);
+            } else if (!text.isEmpty()){
+                translationGroupMessage.execute(message);
+            }
         }
     }
 }

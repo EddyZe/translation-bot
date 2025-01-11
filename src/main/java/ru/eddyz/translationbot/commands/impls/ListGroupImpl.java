@@ -72,7 +72,7 @@ public class ListGroupImpl implements ListGroup {
                     .builder()
                     .messageId(messageId)
                     .chatId(chatId)
-                    .text(generateMessage())
+                    .text(generateMessage(chatId))
                     .parseMode(ParseMode.HTML)
                     .replyMarkup(InlineKey.listGroupButton(list, visNext, visBack))
                     .build();
@@ -94,7 +94,7 @@ public class ListGroupImpl implements ListGroup {
     private void sendMessage(Long chatId, List<Group> groups, boolean visNext, boolean visBack) {
         try {
             var sendMessage = SendMessage.builder()
-                    .text(generateMessage())
+                    .text(generateMessage(chatId))
                     .chatId(chatId)
                     .parseMode(ParseMode.HTML)
                     .replyMarkup(InlineKey.listGroupButton(groups, visNext, visBack))
@@ -111,11 +111,14 @@ public class ListGroupImpl implements ListGroup {
         return groupService.findByChatId(chatId, pageable);
     }
 
-    private String generateMessage() {
+    private String generateMessage(Long chatId) {
         return """
                 <b>Список групп</b>
                 
                 Тут вы можете посмотреть список групп, которые вы добавили, а так же удалить ненужные группы или докупить символы для групп.
-                """;
+                
+                Если вы добавили группу, но она не отображается здесь, то напишите в привязываемой группе❗️ команду 👇
+                /translate %s
+                """.formatted(chatId);
     }
 }

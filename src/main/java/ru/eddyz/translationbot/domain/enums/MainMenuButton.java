@@ -4,7 +4,10 @@ package ru.eddyz.translationbot.domain.enums;
 public enum MainMenuButton {
 
 
-    MY_GROUPS("Мои группы 📋"), MY_HISTORY_PAYMENTS("История платежей 🏦"), ADD_GROUP("Добавить группу ➕");
+    MY_GROUPS("Мои группы 📋"),
+    MY_HISTORY_PAYMENTS("История платежей 🏦"),
+    ADD_GROUP("Добавить группу ➕"),
+    ID_GROUP("Узнать ID группы");
 
     private final String btn;
 

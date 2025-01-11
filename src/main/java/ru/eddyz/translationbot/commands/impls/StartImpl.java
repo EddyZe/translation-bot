@@ -68,8 +68,8 @@ public class StartImpl implements Start {
 
     private String generateMessage(String name) {
         return """
-                %s, привет.
-                приветствие
+                %s, добро пожаловать. С помощью меня вы сможете переводить сообщения в ваших группах.
+               
                 """.formatted(name);
 
     }
