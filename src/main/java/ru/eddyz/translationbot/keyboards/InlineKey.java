@@ -187,9 +187,13 @@ public class InlineKey {
         var rows = new ArrayList<InlineKeyboardRow>();
 
         prices.forEach(price -> {
+            boolean integerNumber = price.getPrice() == price.getPrice().intValue();
             var btn = InlineKeyboardButton.builder()
-                    .text("%s символов за %.2f %s"
-                            .formatted(price.getNumberCharacters(), price.getPrice(), price.getAsset()))
+                    .text("%s символов %s %s"
+                            .formatted(
+                                    price.getNumberCharacters(),
+                                    integerNumber ? String.valueOf(price.getPrice().intValue()) : price.getPrice().toString(),
+                                    price.getAsset()))
                     .callbackData(ButtonPriceList.PRICE_LIST.name() + ":" + price.getPriceId() + ":" + groupId)
                     .build();
 

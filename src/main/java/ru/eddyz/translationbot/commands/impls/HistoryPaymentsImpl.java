@@ -105,10 +105,14 @@ public class HistoryPaymentsImpl implements HistoryPayments {
                         return 1;
                     else return -1;
                 }))
-                .forEach(payment -> sb
-                .append("<b>ID платежа</b>: %s\n".formatted(payment.getPaymentId()))
-                .append("<b>Сумма</b>: %.2f %s\n".formatted(payment.getAmount(),payment.getAsset()))
-                .append("<b>Дата</b>: %s\n\n".formatted(dtf.format(payment.getCreatedAt()))));
+                .forEach(payment -> {
+                    boolean integerNumber = payment.getAmount() == payment.getAmount().intValue();
+                    var amount = integerNumber ? String.valueOf(payment.getAmount().intValue()) : payment.getAmount().toString();
+                    sb
+                            .append("<b>ID платежа</b>: %s\n".formatted(payment.getPaymentId()))
+                            .append("<b>Сумма</b>: %s %s\n".formatted(amount, payment.getAsset()))
+                            .append("<b>Дата</b>: %s\n\n".formatted(dtf.format(payment.getCreatedAt())));
+                });
 
         return sb.toString();
     }
