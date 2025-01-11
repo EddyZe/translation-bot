@@ -78,6 +78,7 @@ public class AddGroupImpl implements AddGroup {
                     .chatId(chatId)
                     .title(Optional.ofNullable(nameGroup.get(chatId)).orElse("Не указано"))
                     .owner(user.get())
+                    .translatingMessages(false)
                     .telegramGroupId(idGroup)
                     .limitCharacters(startingCharGroup)
                     .build();
@@ -90,7 +91,7 @@ public class AddGroupImpl implements AddGroup {
             UserState.clearUserState(chatId);
             nameGroup.remove(chatId);
 
-            sendMessage(chatId, "Группа успешна добавлена. Не забудьте добавить бота в группу и сделать его администратором");
+            sendMessage(chatId, "Группа успешна добавлена. Не забудьте добавить бота в группу и сделать его администратором и включить перевод в настройках группы. Чтобы перейти в настройки, откройте свои группы и выберите нужную из списка.");
         } catch (NumberFormatException e) {
             sendMessage(chatId, "ID должно содержать только цифры! Введите ID снова: ");
         } catch (IllegalArgumentException e) {

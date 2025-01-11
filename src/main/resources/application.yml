@@ -37,4 +37,4 @@ yandex:
     folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
     base-url: ${YANDEX_BASE_URL:https://translate.api.cloud.yandex.net/translate/v2}
 server:
-  port: 8080
+  port: ${PORT:8080}

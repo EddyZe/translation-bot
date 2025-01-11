@@ -26,6 +26,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
     private final CloseHistoryPayment closeHistoryPayment;
     private final ShowLanguage showLanguage;
     private final AddLanguage addLanguage;
+    private final EnableTranslationMessageGroup enableTranslationMessageGroup;
 
     @Override
     public void handle(CallbackQuery callbackQuery) {
@@ -41,9 +42,9 @@ public class CallBackHandlerImpl implements CallBackHandler {
             closeWindow.execute(callbackQuery, listGroup.getClass());
         } else if (data.startsWith(ListGroupMenu.GROUP_LIST.name())) {
             openSettingGroup.execute(callbackQuery);
-        } else if (data.startsWith(SettingGroupBtn.DELETE_GROUP.name())) {
+        } else if (data.startsWith(ButtonSettingGroup.DELETE_GROUP.name())) {
             removeGroup.execute(callbackQuery);
-        } else if (data.startsWith(SettingGroupBtn.BACK_TO_LIST_GROUP.name())) {
+        } else if (data.startsWith(ButtonSettingGroup.BACK_TO_LIST_GROUP.name())) {
             listGroup.execute(callbackQuery);
         } else if (data.equals(ButtonCheckLimit.CLOSE_CHECK_LIMIT.name())) {
             closeWindow.execute(callbackQuery, checkLimit.getClass());
@@ -53,7 +54,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
         } else if (data.equals(ButtonCheckLimit.BACK_CHECK_LIMIT.name())) {
             UserCurrentPages.checkListBackPage(callbackQuery.getMessage().getChatId());
             checkLimit.execute(callbackQuery);
-        } else if (data.startsWith(SettingGroupBtn.BUY_CHARACTERS.name())) {
+        } else if (data.startsWith(ButtonSettingGroup.BUY_CHARACTERS.name())) {
             selectPaymentType.execute(callbackQuery);
         } else if (data.startsWith(ButtonSelectPaymentType.BACK_SETTING_GROUP.name())) {
             openSettingGroup.execute(callbackQuery);
@@ -83,7 +84,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
             historyPayments.execute(callbackQuery);
         } else if (data.equals(ButtonHistoryPayment.CLOSE_HISTORY.name())) {
             closeHistoryPayment.execute(callbackQuery);
-        } else if (data.startsWith(SettingGroupBtn.SELECT_LANGUAGE.name())) {
+        } else if (data.startsWith(ButtonSettingGroup.SELECT_LANGUAGE.name())) {
             showLanguage.execute(callbackQuery);
         } else if (data.startsWith(ButtonLanguageList.NEXT_PAGE_LANGUAGE.name())) {
             UserCurrentPages.languagesNextPage(callbackQuery.getMessage().getChatId());
@@ -93,6 +94,8 @@ public class CallBackHandlerImpl implements CallBackHandler {
             showLanguage.execute(callbackQuery);
         } else if (data.startsWith(ButtonLanguageList.BUTTON_LANGUAGE_LIST.name())) {
             addLanguage.execute(callbackQuery);
+        } else if (data.startsWith(ButtonSettingGroup.TRANSLATION_GROUP.name())) {
+            enableTranslationMessageGroup.execute(callbackQuery);
         }
     }
 

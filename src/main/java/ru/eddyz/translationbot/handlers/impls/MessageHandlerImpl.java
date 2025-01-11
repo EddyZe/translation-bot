@@ -31,12 +31,12 @@ public class MessageHandlerImpl implements MessageHandler {
                 start.execute(message);
             else if (text.equals("/check_limit")) {
                 checkLimit.execute(message);
-            } else if (text.equals(MainMenuButton.MY_GROUPS.toString())) {
+            } else if (text.equals(MainMenuButton.MY_GROUPS.toString()) || text.equals("/groups")) {
                 listGroup.execute(message);
-            } else if (text.equals(MainMenuButton.ADD_GROUP.toString())) {
+            } else if (text.equals(MainMenuButton.ADD_GROUP.toString()) || text.equals("/addgroup")) {
                 UserState.setUserState(message.getChatId(), MainMenuButton.ADD_GROUP);
                 addGroup.execute(message);
-            } else if (text.equals(MainMenuButton.MY_HISTORY_PAYMENTS.toString())) {
+            } else if (text.equals(MainMenuButton.MY_HISTORY_PAYMENTS.toString()) || text.equals("/payments")) {
                 historyPayments.execute(message);
             }else {
                 var currentState = UserState.getUserState(message.getChatId());

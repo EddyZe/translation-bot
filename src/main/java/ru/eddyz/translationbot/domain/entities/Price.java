@@ -33,11 +33,11 @@ public class Price {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Price price1 = (Price) o;
-        return Objects.equals(numberCharacters, price1.numberCharacters) && Objects.equals(price, price1.price) && type == price1.type;
+        return Objects.equals(priceId, price1.priceId) && Objects.equals(numberCharacters, price1.numberCharacters) && Objects.equals(price, price1.price) && Objects.equals(asset, price1.asset) && type == price1.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(numberCharacters, price, type);
+        return Objects.hash(priceId, numberCharacters, price, asset, type);
     }
 }

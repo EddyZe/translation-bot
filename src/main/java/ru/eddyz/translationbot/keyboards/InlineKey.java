@@ -82,12 +82,18 @@ public class InlineKey {
                 .build();
     }
 
-    public static InlineKeyboardMarkup groupSetting(Long groupId) {
-        List<InlineKeyboardRow> rows = Arrays.stream(SettingGroupBtn.values())
+    public static InlineKeyboardMarkup groupSetting(Group group) {
+        List<InlineKeyboardRow> rows = Arrays.stream(ButtonSettingGroup.values())
                 .map(b -> {
+                    var text = b.toString();
+                    if (b == ButtonSettingGroup.TRANSLATION_GROUP) {
+                        var emoj = group.getTranslatingMessages() ? "Вкл ✅" : "Выкл ";
+                        text = b.toString().formatted(emoj);
+                    }
+
                     var btn = InlineKeyboardButton.builder()
-                            .text(b.toString())
-                            .callbackData(b.name() + ":" + groupId)
+                            .text(text)
+                            .callbackData(b.name() + ":" + group.getGroupId())
                             .build();
                     return new InlineKeyboardRow(btn);
                 })

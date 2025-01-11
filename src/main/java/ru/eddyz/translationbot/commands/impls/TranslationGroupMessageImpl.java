@@ -53,6 +53,9 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
             return;
         }
 
+        if (!group.getTranslatingMessages())
+            return;
+
         for (LanguageTranslation lang : groupLanguages) {
             if (!lang.getCode().equals(detectLanguageCode)) {
                 var translationText = yandexTranslateClient

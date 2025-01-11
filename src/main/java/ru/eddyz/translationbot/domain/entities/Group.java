@@ -29,6 +29,8 @@ public class Group {
 
     private Integer limitCharacters;
 
+    private Boolean translatingMessages;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private List<TranslationMessage> translationMessages;
 
