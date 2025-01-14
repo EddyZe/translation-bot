@@ -28,7 +28,6 @@ telegram:
 crypto:
   pay:
     token: ${CRYPTO_TOKEN:24556:AAubQe1O5jSEyOlaNM4vI2Ljsf8M6yNBrb6}
-    hook: ${CRYPTO_HOOK:https://e0c8-46-22-62-53.ngrok-free.app}
     base-url: ${CRYPTO_PAY_URL:https://testnet-pay.crypt.bot/api}
 
 yandex:
@@ -37,4 +36,9 @@ yandex:
     folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
     base-url: ${YANDEX_BASE_URL:https://translate.api.cloud.yandex.net/translate/v2}
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8083}
+
+proxyapi:
+  openai:
+    token: ${PROXYAPI_OPENAI_TOKEN}
+    base_url: ${PROXYAPI_OPENAI_URL:https://api.proxyapi.ru/openai}
