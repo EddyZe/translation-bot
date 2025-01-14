@@ -3,6 +3,7 @@ package ru.eddyz.translationbot.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.eddyz.translationbot.translaters.enums.TranslatorService;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +24,9 @@ public class LanguageTranslation {
     private String title;
 
     private String code;
+
+    @Enumerated(EnumType.STRING)
+    private TranslatorService translator;
 
     @ManyToMany
     @JoinTable(

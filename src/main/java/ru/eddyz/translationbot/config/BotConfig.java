@@ -1,6 +1,9 @@
 package ru.eddyz.translationbot.config;
 
 
+import com.google.auth.ApiKeyCredentials;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,5 +46,13 @@ public class BotConfig {
     @Bean
     public TelegramClient telegramClient(TelegramBotConfig config) {
         return new OkHttpTelegramClient(config.getToken());
+    }
+
+    @Bean
+    public Translate googleTranslate(@Value("${google.translate.token}") String token) {
+
+        return TranslateOptions.newBuilder()
+                .setCredentials(ApiKeyCredentials.create(token))
+                .build().getService();
     }
 }

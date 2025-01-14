@@ -5,9 +5,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import ru.eddyz.translationbot.clients.yandex.payloads.RequestDetect;
-import ru.eddyz.translationbot.clients.yandex.payloads.RequestTranslate;
 import ru.eddyz.translationbot.clients.yandex.payloads.ResponseDetect;
 import ru.eddyz.translationbot.clients.yandex.payloads.ResponseTranslate;
+import ru.eddyz.translationbot.clients.yandex.payloads.RequestTranslate;
 import ru.eddyz.translationbot.domain.models.YandexTranslateData;
 
 import java.util.List;

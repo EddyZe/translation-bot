@@ -1,9 +1,12 @@
 package ru.eddyz.translationbot;
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.translate.v3.TranslateTextRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.eddyz.translationbot.clients.google.GoogleTranslateClient;
 import ru.eddyz.translationbot.clients.proxyapi.ProxyApiOpenAiClient;
 import ru.eddyz.translationbot.clients.proxyapi.payloads.MessageOpenAi;
 import ru.eddyz.translationbot.clients.proxyapi.payloads.ModelOpenAi;
@@ -23,6 +26,9 @@ class TranslationBotApplicationTests {
 
     @Autowired
     ProxyApiOpenAiClient proxyApiOpenAiClient;
+
+    @Autowired
+    GoogleTranslateClient googleTranslateClient;
 
     @Test
     void checkYandexTranslateClientV2() {
@@ -61,19 +67,28 @@ class TranslationBotApplicationTests {
                     System.out.println(choiceOpenAi.getMessage().getContent());
                 });
 
-        MessageOpenAi translatePromt = proxyApiOpenAiClient.promtTranslateText("Russia");
+        MessageOpenAi translatePromt = proxyApiOpenAiClient.promtTranslateText("Russian");
 
         MessageOpenAi text = MessageOpenAi.builder()
                 .role("user")
-                .content("ในความคิดของฉันไม่มีคำสั่งถูกนำมาในห้องเล่นเกม")
+                .content(" ")
                 .build();
 
         ResponseOpenAi ai1 = proxyApiOpenAiClient.sendPromt(RequestOpenAi.builder()
-                        .model(ModelOpenAi.GPT_4o_MINI.toString())
+                        .model(ModelOpenAi.O1_MINI.toString())
                         .messages(List.of(translatePromt, text))
                 .build());
 
 
         ai1.getChoices().forEach(choiceOpenAi -> System.out.println(choiceOpenAi.getMessage().getContent()));
+    }
+
+
+    @Test
+    public void test() {
+
+        String hello = googleTranslateClient.translate("Hello");
+        System.out.println(hello);
+
     }
 }

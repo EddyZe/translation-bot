@@ -1,7 +1,9 @@
 package ru.eddyz.translationbot.commands.impls;
 
+import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -12,7 +14,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.clients.proxyapi.ProxyApiOpenAiClient;
 import ru.eddyz.translationbot.clients.proxyapi.payloads.MessageOpenAi;
-import ru.eddyz.translationbot.clients.proxyapi.payloads.ModelOpenAi;
 import ru.eddyz.translationbot.clients.proxyapi.payloads.RequestOpenAi;
 import ru.eddyz.translationbot.clients.yandex.YandexTranslateClient;
 import ru.eddyz.translationbot.commands.TranslationGroupMessage;
@@ -22,6 +23,7 @@ import ru.eddyz.translationbot.domain.entities.TranslationMessage;
 import ru.eddyz.translationbot.keyboards.InlineKey;
 import ru.eddyz.translationbot.services.GroupService;
 import ru.eddyz.translationbot.services.TranslationMessagesService;
+import ru.eddyz.translationbot.translaters.TranslatorFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,15 +32,14 @@ import java.util.Optional;
 
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class TranslationGroupMessageImpl implements TranslationGroupMessage {
 
     private final TelegramClient telegramClient;
     private final GroupService groupService;
     private final TranslationMessagesService translationMessagesService;
-    private final YandexTranslateClient yandexTranslateClient;
-    private final ProxyApiOpenAiClient proxyApiOpenAiClient;
+    private final TranslatorFactory translatorFactory;
 
     @Override
     @Transactional
@@ -57,14 +58,6 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
                     messageId, null);
             return;
         }
-
-        //var detectLanguageCode = yandexTranslateClient.detect(text).getLanguageCode();
-        var promtDetectCode = proxyApiOpenAiClient.promtDetectLanguage();
-        var promtText = buildMessageText(text);
-        var response = proxyApiOpenAiClient.sendPromt(buildPromt(promtDetectCode, promtText));
-
-        var splitResponse = response.getChoices().getFirst().getMessage().getContent().split(":");
-        var code = splitResponse[0];
 
         var group = groupService.findByTelegramChatId(groupChatId);
         var groupLanguages = new ArrayList<>(group.getLanguages());
@@ -85,18 +78,13 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
         var sb = new StringBuilder();
 
         for (LanguageTranslation lang : groupLanguages) {
+            var translator = translatorFactory.getTranslator(lang.getTranslator());
+            var code = translator.detect(text);
             if (!lang.getCode().equals(code)) {
-                var promtTranslate = proxyApiOpenAiClient.promtTranslateText(lang.getTitle());
-                var messageOpenAi = buildMessageText(text);
-//                var translationText = yandexTranslateClient
-//                        .translate(text, lang.getCode())
-//                        .getTranslations().getFirst().getText();
+                var language = new Pair<>(lang.getCode(), lang.getTitle());
+                var translationText = translator.translate(text, language);
 
-                response = proxyApiOpenAiClient.sendPromt(buildPromt(promtTranslate, messageOpenAi));
-
-                var translationText = response.getChoices().getFirst().getMessage().getContent();
-
-                log.info("translate: {}", translationText);
+                log.info("translate {}: {}",translator.translatorType().name(), translationText);
 
                 var temp = "&#8226 %s\n".formatted(translationText);
                 if (temp.length() + sb.length() >= 4096) {
@@ -114,20 +102,6 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
             return;
 
         sendMessage(groupChatId, sb.toString(), messageId, null);
-    }
-
-    private RequestOpenAi buildPromt(MessageOpenAi promtDetectCode, MessageOpenAi promtText) {
-        return RequestOpenAi.builder()
-                .model(ModelOpenAi.GPT_4o_MINI.toString())
-                .messages(List.of(promtDetectCode, promtText))
-                .build();
-    }
-
-    private MessageOpenAi buildMessageText(String text) {
-        return MessageOpenAi.builder()
-                .role("user")
-                .content(text)
-                .build();
     }
 
     private TranslationMessage buildTranslationMesssage(Group group, String text, String translationText, String userName) {

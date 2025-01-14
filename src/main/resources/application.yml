@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8083}
+
 spring:
   application:
     name: translation-bot
@@ -17,7 +20,7 @@ spring:
 
 telegram:
   bot:
-    token: ${BOT_TOKEN:7653790514:AAEjzQNNEnBdKjfxHKoozQik1g8RZTMCCcw}
+    token: ${BOT_TOKEN:7653790514:AAH0esQxjAdsmZr2c_Y8p6eQlaqzEdr0IXg}
     username: ${BOT_USERNAME:translationgroup_bot}
     username-admin: ${USERNAME_ADMIN:edzeeeee}
     bot-url: ${BOT_URL:https://t.me/translationgroup_bot}
@@ -35,10 +38,13 @@ yandex:
     token: ${YANDEX_TRANSLATE_TOKEN:AQVNyPiEAuvo72PgR_vn3zNsZcPtNaAbgZd1-fLj}
     folder-id: ${FOLDER_ID:b1g918b29j7f1b60clmb}
     base-url: ${YANDEX_BASE_URL:https://translate.api.cloud.yandex.net/translate/v2}
-server:
-  port: ${PORT:8083}
 
 proxyapi:
   openai:
     token: ${PROXYAPI_OPENAI_TOKEN}
     base_url: ${PROXYAPI_OPENAI_URL:https://api.proxyapi.ru/openai}
+    model: ${OPENAI_MODEL:gpt-4o-mini}
+
+google:
+  translate:
+    token: ${GOOGLE_TRANSLATE_TOKEN}
