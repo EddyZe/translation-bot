@@ -20,7 +20,7 @@ spring:
 
 telegram:
   bot:
-    token: ${BOT_TOKEN:7653790514:AAH0esQxjAdsmZr2c_Y8p6eQlaqzEdr0IXg}
+    token: ${BOT_TOKEN:7232909552:AAFJFWheZT3t0P7eE67CZuyrGdhJHEjCkFA}
     username: ${BOT_USERNAME:translationgroup_bot}
     username-admin: ${USERNAME_ADMIN:edzeeeee}
     bot-url: ${BOT_URL:https://t.me/translationgroup_bot}
@@ -41,10 +41,10 @@ yandex:
 
 proxyapi:
   openai:
-    token: ${PROXYAPI_OPENAI_TOKEN}
+    token: ${PROXYAPI_OPENAI_TOKEN:sk-sChXtxDe6d6sdMTOdq2GXcrxnJogiBz2}
     base_url: ${PROXYAPI_OPENAI_URL:https://api.proxyapi.ru/openai}
     model: ${OPENAI_MODEL:gpt-4o-mini}
 
 google:
   translate:
-    token: ${GOOGLE_TRANSLATE_TOKEN}
+    token: ${GOOGLE_TRANSLATE_TOKEN:AIzaSyCwoP7tTm7ygsQLN7JIAYQmgExNqs3ZMP4}

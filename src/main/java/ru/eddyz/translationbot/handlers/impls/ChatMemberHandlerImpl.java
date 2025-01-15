@@ -11,13 +11,16 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.domain.entities.DeletedGroup;
 import ru.eddyz.translationbot.domain.entities.Group;
+import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
 import ru.eddyz.translationbot.domain.entities.User;
 import ru.eddyz.translationbot.handlers.ChatMemberHandler;
 import ru.eddyz.translationbot.services.DeletedGroupService;
 import ru.eddyz.translationbot.services.GroupService;
+import ru.eddyz.translationbot.services.LanguageService;
 import ru.eddyz.translationbot.services.UserService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 
@@ -27,6 +30,7 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
 
     private final GroupService groupService;
     private final DeletedGroupService deletedGroupService;
+    private final LanguageService languageService;
     private final UserService userService;
     private final TelegramClient telegramClient;
 
@@ -35,10 +39,11 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
     @Value("${telegram.groups.starting-chars}")
     private Integer startingCharGroup;
 
-    public ChatMemberHandlerImpl(GroupService groupService, DeletedGroupService deletedGroupService, UserService userService, TelegramClient telegramClient,
+    public ChatMemberHandlerImpl(GroupService groupService, DeletedGroupService deletedGroupService, LanguageService languageService, UserService userService, TelegramClient telegramClient,
                                  @Value("${telegram.bot.username}") String botUsername) {
         this.groupService = groupService;
         this.deletedGroupService = deletedGroupService;
+        this.languageService = languageService;
         this.userService = userService;
         this.telegramClient = telegramClient;
         this.botUsername = botUsername;
@@ -70,14 +75,12 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
 
     private String generateMessage(String title, Integer chars) {
         return """
-                Группа %s добавлена в список групп.
-                Для данной группы выдано бесплатно %d символов.
-                Чтобы я начал работать, перейдите в настройки и включите перевод, а так же выберите языки, на которые нужно переводить. 
+                Группа %s добавлена в список.
+                Бесплатно %d символов для перевода.
+                Выберите языки тут: %s
                 
-                Добавленные группы и оставшиеся символы вы можете посмотреть перейдя в меня и введя команду /groups
-                
-                Так же вы можете сможете там докупить символы, выбрать языки для переводов."""
-                .formatted(title, chars);
+                В меню бота можно докупить символы, выбрать другие языки перевода."""
+                .formatted(title, chars, botUsername);
     }
 
     private void leftGroupBot(Long groupChatId) {
@@ -115,11 +118,20 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
     }
 
     private void createGroup(Long fromChatId, String title, User user, Long groupChatId) {
+        var languagesTarting = new ArrayList<LanguageTranslation>();
+
+        var ru = languageService.findByCode("ru");
+        var en = languageService.findByCode("en");
+
+        languagesTarting.add(ru);
+        languagesTarting.add(en);
+
         var newGroup = Group.builder()
                 .chatId(fromChatId)
                 .title(title)
                 .owner(user)
-                .translatingMessages(false)
+                .languages(languagesTarting)
+                .translatingMessages(true)
                 .telegramGroupId(groupChatId)
                 .limitCharacters(startingCharGroup)
                 .build();

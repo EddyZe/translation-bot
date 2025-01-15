@@ -87,8 +87,6 @@ class TranslationBotApplicationTests {
     @Test
     public void test() {
 
-        String hello = googleTranslateClient.translate("Hello");
-        System.out.println(hello);
 
     }
 }
