@@ -10,7 +10,7 @@ public interface GroupService {
 
     Page<Group> findByChatId(Long chatId, Pageable pageable);
 
-    void save(Group newGroup);
+    Group save(Group newGroup);
 
     void update(Group group);
 

@@ -168,8 +168,8 @@ public class InlineKey {
                 .build();
 
         var goBack = InlineKeyboardButton.builder()
-                .text(ButtonSelectPaymentType.BACK_SETTING_GROUP.toString())
-                .callbackData(ButtonSelectPaymentType.BACK_SETTING_GROUP.name() + ":" + groupId)
+                .text(ButtonSelectPaymentType.CLOSE_PAYMODE.toString())
+                .callbackData(ButtonSelectPaymentType.CLOSE_PAYMODE.name())
                 .build();
 
         var rows = new ArrayList<>(

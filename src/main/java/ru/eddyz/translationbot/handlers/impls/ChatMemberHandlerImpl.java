@@ -11,7 +11,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.domain.entities.DeletedGroup;
 import ru.eddyz.translationbot.domain.entities.Group;
-import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
 import ru.eddyz.translationbot.domain.entities.User;
 import ru.eddyz.translationbot.handlers.ChatMemberHandler;
 import ru.eddyz.translationbot.services.DeletedGroupService;
@@ -21,6 +20,7 @@ import ru.eddyz.translationbot.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 
@@ -77,7 +77,7 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
         return """
                 Группа %s добавлена в список.
                 Бесплатно %d символов для перевода.
-                Выберите языки тут: %s
+                Выберите языки тут: @%s
                 
                 В меню бота можно докупить символы, выбрать другие языки перевода."""
                 .formatted(title, chars, botUsername);
@@ -118,20 +118,13 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
     }
 
     private void createGroup(Long fromChatId, String title, User user, Long groupChatId) {
-        var languagesTarting = new ArrayList<LanguageTranslation>();
-
-        var ru = languageService.findByCode("ru");
-        var en = languageService.findByCode("en");
-
-        languagesTarting.add(ru);
-        languagesTarting.add(en);
 
         var newGroup = Group.builder()
                 .chatId(fromChatId)
                 .title(title)
                 .owner(user)
-                .languages(languagesTarting)
                 .translatingMessages(true)
+                .languages(new ArrayList<>())
                 .telegramGroupId(groupChatId)
                 .limitCharacters(startingCharGroup)
                 .build();
@@ -140,7 +133,22 @@ public class ChatMemberHandlerImpl implements ChatMemberHandler {
 
         deletedGroup.ifPresent(group -> newGroup.setLimitCharacters(group.getChars()));
 
-        groupService.save(newGroup);
+        var saveGroup = groupService.save(newGroup);
+
+        try {
+            var ru = languageService.findByCode("ru");
+            var en = languageService.findByCode("en");
+            saveGroup.getLanguages().add(ru);
+            saveGroup.getLanguages().add(en);
+            ru.getChats().add(saveGroup);
+            en.getChats().add(saveGroup);
+            groupService.update(saveGroup);
+            languageService.save(ru);
+            languageService.save(en);
+        } catch (NoSuchElementException e) {
+            log.error("Ошибка при добавлении стандартных языков {}", e.toString());
+        }
+
 
         sendMessage(groupChatId, generateMessage(title, newGroup.getLimitCharacters()));
     }

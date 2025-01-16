@@ -26,11 +26,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void save(Group newGroup) {
+    public Group save(Group newGroup) {
         if (groupRepository.findByTelegramGroupId(newGroup.getTelegramGroupId()).isPresent())
             throw new IllegalArgumentException("Группа с таким ID существует!");
 
-        groupRepository.save(newGroup);
+        return groupRepository.save(newGroup);
     }
 
     @Override

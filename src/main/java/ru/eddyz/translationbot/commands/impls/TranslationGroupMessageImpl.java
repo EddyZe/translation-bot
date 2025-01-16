@@ -3,7 +3,6 @@ package ru.eddyz.translationbot.commands.impls;
 import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -12,10 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.eddyz.translationbot.clients.proxyapi.ProxyApiOpenAiClient;
-import ru.eddyz.translationbot.clients.proxyapi.payloads.MessageOpenAi;
-import ru.eddyz.translationbot.clients.proxyapi.payloads.RequestOpenAi;
-import ru.eddyz.translationbot.clients.yandex.YandexTranslateClient;
 import ru.eddyz.translationbot.commands.TranslationGroupMessage;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.domain.entities.LanguageTranslation;
@@ -27,7 +22,6 @@ import ru.eddyz.translationbot.translaters.TranslatorFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 
@@ -41,6 +35,7 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
     private final TranslationMessagesService translationMessagesService;
     private final TranslatorFactory translatorFactory;
 
+
     @Override
     @Transactional
     public void execute(Message message) {
@@ -50,7 +45,7 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
 
         var textSplit = text.split(" ");
 
-        if (textSplit.length == 1 && textSplit[0].matches("^(https?:\\/\\/)?(www\\.)?\\S+\\.\\S+"))
+        if (textSplit.length == 1 && textSplit[0].matches("^(https?://)?(www\\.)?\\S+\\.\\S+"))
             return;
 
         if (text.length() > 1000) {
@@ -62,18 +57,19 @@ public class TranslationGroupMessageImpl implements TranslationGroupMessage {
         var group = groupService.findByTelegramChatId(groupChatId);
         var groupLanguages = new ArrayList<>(group.getLanguages());
 
+        if (!group.getTranslatingMessages())
+            return;
 
         var currentChars = group.getLimitCharacters();
         var newChatsLimit = currentChars - text.length();
 
         if (newChatsLimit <= 0) {
-            sendMessage(group.getChatId(), "Лимит символов для группы %s исчерпан. Докупите символы, для этой группы"
+            group.setTranslatingMessages(false);
+            groupService.update(group);
+            sendMessage(groupChatId, "<b>%s</b>\n\nНе хватает символов для перевода. Докупите символы, для этой группы."
                     .formatted(group.getTitle()), null, InlineKey.selectPaymentMode(group.getGroupId()));
             return;
         }
-
-        if (!group.getTranslatingMessages())
-            return;
 
         var sb = new StringBuilder();
 

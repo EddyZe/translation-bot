@@ -16,4 +16,5 @@ public class PaymentPayload {
 
     private Long groupId;
     private Long priceId;
+    private String payerName;
 }

@@ -12,16 +12,14 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.commands.AddGroup;
 import ru.eddyz.translationbot.domain.entities.Group;
-import ru.eddyz.translationbot.domain.enums.MainMenuButton;
-import ru.eddyz.translationbot.domain.enums.UserStates;
 import ru.eddyz.translationbot.services.DeletedGroupService;
 import ru.eddyz.translationbot.services.GroupService;
+import ru.eddyz.translationbot.services.LanguageService;
 import ru.eddyz.translationbot.services.UserService;
 import ru.eddyz.translationbot.util.UserState;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 
 @Component
@@ -33,6 +31,7 @@ public class AddGroupImpl implements AddGroup {
     private final GroupService groupService;
     private final UserService userService;
     private final DeletedGroupService deletedGroupService;
+    private final LanguageService languageService;
 
     @Value("${telegram.groups.starting-chars}")
     private Integer startingCharGroup;
@@ -62,11 +61,13 @@ public class AddGroupImpl implements AddGroup {
                 return;
             }
 
+
             var newGroup = Group.builder()
                     .chatId(chatId)
                     .title(title)
                     .owner(user.get())
-                    .translatingMessages(false)
+                    .languages(new ArrayList<>())
+                    .translatingMessages(true)
                     .telegramGroupId(groupChatId)
                     .limitCharacters(startingCharGroup)
                     .build();
@@ -75,7 +76,24 @@ public class AddGroupImpl implements AddGroup {
 
             deletedGroup.ifPresent(group -> newGroup.setLimitCharacters(group.getChars()));
 
-            groupService.save(newGroup);
+
+
+            var saved = groupService.save(newGroup);
+
+            try {
+                var ru = languageService.findByCode("ru");
+                var en = languageService.findByCode("en");
+                saved.getLanguages().add(ru);
+                saved.getLanguages().add(en);
+                ru.getChats().add(saved);
+                en.getChats().add(saved);
+                groupService.update(saved);
+                languageService.save(ru);
+                languageService.save(en);
+            } catch (NoSuchElementException e) {
+                log.error("Ошибка при добавлении стандартных языков {}", e.toString());
+            }
+
 
             sendMessage(chatId, "Группа %s успешна добавлена.".formatted(title));
         } catch (NumberFormatException e) {

@@ -30,13 +30,11 @@ public class NotificationChatsScheduler {
     }
 
 
-    @Scheduled(cron = "* * 6 * * *")
+    @Scheduled(cron = "0 0 6 * * *")
     public void checkChars() {
         List<Group> groupMinChars = groupService.findByMinChars(minChars);
 
-        groupMinChars.forEach(group -> {
-            sendMessage(group.getChatId(), generateMessage(group));
-        });
+        groupMinChars.forEach(group -> sendMessage(group.getChatId(), generateMessage(group)));
     }
 
     private void sendMessage(Long chatId, String message) {
@@ -58,7 +56,7 @@ public class NotificationChatsScheduler {
                 <b>‼️ Уведомление</b>
                 
                 В группе %s осталось %d символов.
-                Не забудьте докупить символы! 
+                Не забудьте докупить символы!
                 """.formatted(group.getTitle(), group.getLimitCharacters());
     }
 }

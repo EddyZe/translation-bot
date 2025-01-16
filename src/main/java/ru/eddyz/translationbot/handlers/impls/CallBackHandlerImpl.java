@@ -55,7 +55,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
             UserCurrentPages.checkListBackPage(callbackQuery.getMessage().getChatId());
             checkLimit.execute(callbackQuery);
         } else if (data.startsWith(ButtonSettingGroup.BUY_CHARACTERS.name())) {
-            selectPaymentType.execute(callbackQuery);
+            selectPaymentType.execute(callbackQuery, false);
         } else if (data.startsWith(ButtonSelectPaymentType.BACK_SETTING_GROUP.name())) {
             openSettingGroup.execute(callbackQuery);
         } else if (data.startsWith(ButtonLanguageList.BACK_SETTING_FROM_LANGUAGE_LIST.name())) {
@@ -63,7 +63,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
             openSettingGroup.execute(callbackQuery);
         } else if (data.startsWith(ButtonPriceList.BACK_SELECTED_PRICE.name())) {
             UserCurrentPages.resetPriceCurrentPage(callbackQuery.getMessage().getChatId());
-            selectPaymentType.execute(callbackQuery);
+            selectPaymentType.execute(callbackQuery, true);
         } else if (data.startsWith(ButtonSelectPaymentType.CRYPTO_PAY_BTN.name())) {
             showPrices.execute(callbackQuery, PaymentType.CRYPTO_PAY);
         } else if (data.startsWith(ButtonSelectPaymentType.TELEGRAM_STARS_BTN.name())) {
@@ -96,6 +96,8 @@ public class CallBackHandlerImpl implements CallBackHandler {
             addLanguage.execute(callbackQuery);
         } else if (data.startsWith(ButtonSettingGroup.TRANSLATION_GROUP.name())) {
             enableTranslationMessageGroup.execute(callbackQuery);
+        } else if (data.equals(ButtonSelectPaymentType.CLOSE_PAYMODE.name())) {
+            closeWindow.execute(callbackQuery, SelectPaymentType.class);
         }
     }
 

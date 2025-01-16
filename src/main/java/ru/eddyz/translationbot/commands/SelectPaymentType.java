@@ -4,5 +4,5 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 public interface SelectPaymentType {
 
-    void execute(CallbackQuery callbackQuery);
+    void execute(CallbackQuery callbackQuery, boolean edit);
 }

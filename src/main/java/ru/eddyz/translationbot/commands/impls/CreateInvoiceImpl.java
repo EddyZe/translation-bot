@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -22,9 +23,7 @@ import ru.eddyz.translationbot.commands.CreateInvoice;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.domain.entities.Price;
 import ru.eddyz.translationbot.domain.enums.PaymentType;
-import ru.eddyz.translationbot.domain.payloads.GroupPayload;
 import ru.eddyz.translationbot.domain.payloads.PaymentPayload;
-import ru.eddyz.translationbot.domain.payloads.PricePayload;
 import ru.eddyz.translationbot.services.GroupService;
 import ru.eddyz.translationbot.services.PriceService;
 
@@ -50,6 +49,7 @@ public class CreateInvoiceImpl implements CreateInvoice {
     public void execute(CallbackQuery callbackQuery) {
         var chatId = callbackQuery.getMessage().getChatId();
         var data = callbackQuery.getData();
+        var payerName = callbackQuery.getFrom().getFirstName();
 
         var split = data.split(":");
         var priceId = Long.parseLong(split[1]);
@@ -59,9 +59,9 @@ public class CreateInvoiceImpl implements CreateInvoice {
             var price = priceService.findById(priceId);
 
             if (price.getType() == PaymentType.CRYPTO_PAY) {
-                buildInvoiceCryptoAndSend(groupId, price, chatId);
+                buildInvoiceCryptoAndSend(groupId, price, chatId, payerName);
             } else if (price.getType() == PaymentType.TELEGRAM_STARS) {
-                buildInvoiceTgStarsAndSend(groupId, price, chatId);
+                buildInvoiceTgStarsAndSend(groupId, price, chatId, payerName);
             }
 
         } catch (NoSuchElementException e) {
@@ -74,10 +74,10 @@ public class CreateInvoiceImpl implements CreateInvoice {
         answerCallBack(callbackQuery.getId());
     }
 
-    private void buildInvoiceTgStarsAndSend(long groupId, Price price, Long chatId) throws JsonProcessingException {
+    private void buildInvoiceTgStarsAndSend(long groupId, Price price, Long chatId, String payerName) throws JsonProcessingException {
         var group = groupService.findById(groupId);
 
-        var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price));
+        var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price, payerName));
 
         var sendInvoice = SendInvoice.builder()
                 .chatId(chatId)
@@ -98,19 +98,21 @@ public class CreateInvoiceImpl implements CreateInvoice {
         }
     }
 
-    private void buildInvoiceCryptoAndSend(long groupId, Price price, Long chatId) throws JsonProcessingException {
+    private void buildInvoiceCryptoAndSend(long groupId, Price price, Long chatId, String payerName)
+            throws JsonProcessingException {
         var group = groupService.findById(groupId);
 
-        var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price));
+        var payload = objectMapper.writeValueAsString(buildPaymentPayload(group, price, payerName));
 
         var invoice = createInvoiceCryptoPay(price, payload);
         showInvoiceCrypto(chatId, invoice.getResult().getMiniAppInvoiceUrl());
     }
 
-    private PaymentPayload buildPaymentPayload(Group group, Price price) {
+    private PaymentPayload buildPaymentPayload(Group group, Price price, String payerName) {
         return PaymentPayload.builder()
                 .groupId(group.getGroupId())
                 .priceId(price.getPriceId())
+                .payerName(payerName)
                 .build();
     }
 
@@ -128,6 +130,7 @@ public class CreateInvoiceImpl implements CreateInvoice {
             var sendMessage = SendMessage.builder()
                     .text(message)
                     .chatId(chatId)
+                    .parseMode(ParseMode.HTML)
                     .build();
 
             telegramClient.execute(sendMessage);

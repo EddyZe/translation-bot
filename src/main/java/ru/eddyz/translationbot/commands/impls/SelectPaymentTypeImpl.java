@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -20,16 +21,18 @@ public class SelectPaymentTypeImpl implements SelectPaymentType {
     private final TelegramClient client;
 
     @Override
-    public void execute(CallbackQuery callbackQuery) {
+    public void execute(CallbackQuery callbackQuery, boolean edit) {
         var chatId = callbackQuery.getMessage().getChatId();
         var messageId = callbackQuery.getMessage().getMessageId();
 
         var data = callbackQuery.getData();
         var split = data.split(":");
-        var btn = split[0];
         var groupId = Long.parseLong(split[1]);
 
-        editMessage(chatId, messageId, groupId);
+        if (edit)
+            editMessage(chatId, messageId, groupId);
+        else
+            sendMessage(chatId, groupId);
 
         answerCallBack(callbackQuery.getId());
     }
@@ -40,6 +43,20 @@ public class SelectPaymentTypeImpl implements SelectPaymentType {
                 
                 Выберите способ оплаты:
                 """;
+    }
+
+    private void sendMessage(Long chatId, Long groupId) {
+        try {
+            var sendMessage = SendMessage.builder()
+                    .chatId(chatId)
+                    .text(generateMessage())
+                    .replyMarkup(InlineKey.selectPaymentMode(groupId))
+                    .build();
+
+            client.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error("Ошибка при изменении сообщения при выборе способа оплаты {}", e.toString());
+        }
     }
 
     private void editMessage(Long chatId, Integer messageId, Long groupId) {

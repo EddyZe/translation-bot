@@ -1,15 +1,14 @@
 package ru.eddyz.translationbot.services.impls;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eddyz.translationbot.domain.entities.Group;
 import ru.eddyz.translationbot.domain.entities.Payment;
-import ru.eddyz.translationbot.domain.entities.Price;
 import ru.eddyz.translationbot.domain.entities.User;
 import ru.eddyz.translationbot.domain.payloads.PaymentPayload;
 import ru.eddyz.translationbot.services.*;
@@ -30,19 +29,16 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
     private final String adminUsername;
 
     private final TelegramClient telegramClient;
-    private final ObjectMapper objectMapper;
 
     public SuccessfulPaymentServiceImpl(UserService userService, GroupService groupService,
                                         PriceService priceService, PaymentService paymentService,
-                                        @Value("${telegram.bot.username-admin}") String adminUsername, TelegramClient telegramClient,
-                                        ObjectMapper objectMapper) {
+                                        @Value("${telegram.bot.username-admin}") String adminUsername, TelegramClient telegramClient) {
         this.userService = userService;
         this.groupService = groupService;
         this.priceService = priceService;
         this.paymentService = paymentService;
         this.adminUsername = adminUsername;
         this.telegramClient = telegramClient;
-        this.objectMapper = objectMapper;
     }
 
 
@@ -72,11 +68,14 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
 
         var groupCurrentCharacters = group.getLimitCharacters();
         group.setLimitCharacters(groupCurrentCharacters + price.getNumberCharacters());
+        group.setTranslatingMessages(true);
         groupService.update(group);
 
         sendMessage(group.getChatId(), generateMessage(payment, group));
         try {
             var admin = userService.findByUsername(adminUsername);
+            sendMessage(group.getTelegramGroupId(), paymentPayload.getPayerName() + " приобрел(а) %d символов для группы"
+                    .formatted(price.getNumberCharacters()));
             sendMessage(admin.getChatId(), generateAdminMessage(user.get(), payment, group));
         } catch (NoSuchElementException e) {
             log.error(e.toString());
@@ -88,6 +87,7 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
             var sendMessage = SendMessage.builder()
                     .text(message)
                     .chatId(chatId)
+                    .parseMode(ParseMode.HTML)
                     .build();
 
             telegramClient.execute(sendMessage);
@@ -98,11 +98,11 @@ public class SuccessfulPaymentServiceImpl implements SuccessfulPaymentService {
 
     private String generateMessage(Payment payment, Group group) {
         return """
-                Вы успешно приобрели %d символов за %.2f %s.
+                Куплено %d символов для группы <b>%s</b> за %.2f %s.
                                 
                 Кол-во символов в группе %s обновлено.
                 Новое кол-во символов: %d
-                """.formatted(payment.getNumberCharacters(), payment.getAmount(), payment.getAsset(), group.getTitle(), group.getLimitCharacters());
+                """.formatted(payment.getNumberCharacters(), group.getTitle(), payment.getAmount(), payment.getAsset(), group.getTitle(), group.getLimitCharacters());
     }
 
     private String generateAdminMessage(User user, Payment payment, Group group) {
